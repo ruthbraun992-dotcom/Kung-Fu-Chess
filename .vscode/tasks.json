@@ -1,0 +1,27 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-g",
+                "-std=c++17",
+                "${workspaceFolder}\\main.cpp",
+                "${workspaceFolder}\\Piece.cpp",
+                "${workspaceFolder}\\Board.cpp",
+                "${workspaceFolder}\\BoardParser.cpp",
+                "${workspaceFolder}\\CommandProcessor.cpp",
+                "${workspaceFolder}\\InputReader.cpp",
+                "-o",
+                "${workspaceFolder}\\main.exe"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"]
+        }
+    ]
+}
