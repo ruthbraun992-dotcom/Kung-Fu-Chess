@@ -3,6 +3,7 @@
 
 #include <string>
 #include <optional>
+#include <cmath>
 
 // Represents a single chess piece: a color + a type.
 // Does not know anything about the board, timing, or rules.
@@ -22,6 +23,12 @@ public:
     // Tries to build a Piece from a 2-character token like "wK".
     // Returns std::nullopt if the token is not a valid piece token.
     static std::optional<Piece> fromToken(const std::string& token);
+    bool isValidMove(
+    int fromRow,
+    int fromCol,
+    int toRow,
+    int toCol
+    ) const;
 
 private:
     Color color_;

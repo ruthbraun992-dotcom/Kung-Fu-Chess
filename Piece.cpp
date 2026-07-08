@@ -51,3 +51,41 @@ std::optional<Piece::Type> Piece::charToType(char c) {
         default:  return std::nullopt;
     }
 }
+#include <cmath>
+
+bool Piece::isValidMove(
+    int fromRow,
+    int fromCol,
+    int toRow,
+    int toCol
+) const
+{
+    int rowDiff = std::abs(toRow - fromRow);
+    int colDiff = std::abs(toCol - fromCol);
+
+    switch (type_)
+    {
+        case Type::KING:
+            return rowDiff <= 1 && colDiff <= 1 
+                   && (rowDiff != 0 || colDiff != 0);
+
+        case Type::ROOK:
+            return fromRow == toRow || fromCol == toCol;
+
+        case Type::BISHOP:
+            return rowDiff == colDiff;
+
+        case Type::QUEEN:
+            return (fromRow == toRow || fromCol == toCol)
+                   || rowDiff == colDiff;
+
+        case Type::KNIGHT:
+            return (rowDiff == 2 && colDiff == 1) ||
+                   (rowDiff == 1 && colDiff == 2);
+
+        case Type::PAWN:
+            return false;
+    }
+
+    return false;
+}

@@ -5,8 +5,6 @@
 #include <string>
 #include "Board.hpp"
 
-// Turns the raw "Board:" section lines into a validated Board.
-// Throws ParseError (see ParseError.h) on invalid input.
 class BoardParser {
 public:
     static Board parse(const std::vector<std::string>& boardLines);

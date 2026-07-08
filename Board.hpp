@@ -16,7 +16,6 @@ struct Position {
     }
 };
 
-// A rows x cols grid of optional<Piece> (nullopt = empty cell).
 class Board {
 public:
     Board(int rows, int cols);

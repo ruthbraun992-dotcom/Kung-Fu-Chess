@@ -9,6 +9,7 @@ void Game::handleClick(int x, int y) {
     Position cell = *cellOpt;
     std::optional<Piece> pieceAtCell = board_.getCell(cell.row, cell.col);
 
+
     if (!selected_.has_value()) {
         if (pieceAtCell.has_value()) {
             selected_ = cell; // select the piece
@@ -30,7 +31,14 @@ void Game::handleClick(int x, int y) {
         selected_ = cell;
         return;
     }
-
+    if (!selectedPiece->isValidMove(
+            selPos.row,
+            selPos.col,
+            cell.row,
+            cell.col))
+    {
+        return;
+    }
     // clicking any other cell sends a move request from the
     // selected piece to that cell. No rules/duration yet, so the
     // move settles instantly.
