@@ -31,7 +31,7 @@ void Game::handleClick(int x, int y) {
         selected_ = cell;
         return;
     }
-    if (!selectedPiece->isValidMove(
+    if (!selectedPiece->isValidShape(
             selPos.row,
             selPos.col,
             cell.row,
@@ -42,9 +42,18 @@ void Game::handleClick(int x, int y) {
     // clicking any other cell sends a move request from the
     // selected piece to that cell. No rules/duration yet, so the
     // move settles instantly.
-    board_.setCell(cell.row, cell.col, selectedPiece);
-    board_.setCell(selPos.row, selPos.col, std::nullopt);
-    selected_.reset();
+    if (!board_.isValidMove(
+        selPos.row,
+        selPos.col,
+        cell.row,
+        cell.col))
+{
+    return;
+}
+
+board_.setCell(cell.row, cell.col, selectedPiece);
+board_.setCell(selPos.row, selPos.col, std::nullopt);
+selected_.reset();
 }
 
 void Game::handleWait(long ms) {

@@ -1,4 +1,6 @@
 #include "Piece.hpp"
+#include <vector>
+#include <utility>
 
 Piece::Piece(Color color, Type type) : color_(color), type_(type) {}
 
@@ -53,7 +55,7 @@ std::optional<Piece::Type> Piece::charToType(char c) {
 }
 #include <cmath>
 
-bool Piece::isValidMove(
+bool Piece::isValidShape(
     int fromRow,
     int fromCol,
     int toRow,
@@ -88,4 +90,60 @@ bool Piece::isValidMove(
     }
 
     return false;
+}
+std::vector<std::pair<int,int>> Piece::getPath(
+    int fromRow,
+    int fromCol,
+    int toRow,
+    int toCol
+) const
+{
+    std::vector<std::pair<int,int>> path;
+
+    int rowStep = 0;
+    int colStep = 0;
+
+    switch(type_)
+    {
+        case Type::ROOK:
+        case Type::QUEEN:
+
+            if (fromRow == toRow)
+                colStep = (toCol > fromCol) ? 1 : -1;
+
+            else if (fromCol == toCol)
+                rowStep = (toRow > fromRow) ? 1 : -1;
+
+            break;
+
+
+        case Type::BISHOP:
+
+            rowStep = (toRow > fromRow) ? 1 : -1;
+            colStep = (toCol > fromCol) ? 1 : -1;
+
+            break;
+
+
+        // אין משבצות בדרך
+        case Type::KING:
+        case Type::KNIGHT:
+        case Type::PAWN:
+            return path;
+    }
+
+
+    int row = fromRow + rowStep;
+    int col = fromCol + colStep;
+
+
+    while(row != toRow || col != toCol)
+    {
+        path.push_back({row, col});
+
+        row += rowStep;
+        col += colStep;
+    }
+
+    return path;
 }

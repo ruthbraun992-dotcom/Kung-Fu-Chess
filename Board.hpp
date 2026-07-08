@@ -29,6 +29,12 @@ public:
     // Prints the board in canonical form: tokens separated by single
     // spaces, one row per line.
     void print(std::ostream& out) const;
+    bool isValidMove(
+    int fromRow,
+    int fromCol,
+    int toRow,
+    int toCol  
+    ) const;
 
 private:
     int rows_;
