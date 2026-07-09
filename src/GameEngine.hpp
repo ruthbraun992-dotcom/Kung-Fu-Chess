@@ -1,9 +1,8 @@
 // GameEngine.hpp
 #pragma once
-#include "Board.hpp"
 #include "RealTimeArbiter.hpp"
 #include <ostream>
-
+#include "Board.hpp"
 class GameEngine {
 public:
     explicit GameEngine(Board board) : board_(std::move(board)) {}
