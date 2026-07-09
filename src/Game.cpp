@@ -3,8 +3,13 @@
 Game::Game(Board board) : board_(std::move(board)) {}
 
 void Game::handleClick(int x, int y) {
-    std::optional<Position> cellOpt = ClickTranslator::pixelToCell(x, y, board_);
-    if (!cellOpt.has_value()) return; // click outside the board is ignored
+    if (pendingMove_.has_value())
+        {
+            return;
+        }
+
+    std::optional<Position> cellOpt =
+        ClickTranslator::pixelToCell(x, y, board_);    if (!cellOpt.has_value()) return; // click outside the board is ignored
 
     Position cell = *cellOpt;
     std::optional<Piece> pieceAtCell = board_.getCell(cell.row, cell.col);
@@ -51,14 +56,38 @@ void Game::handleClick(int x, int y) {
     return;
 }
 
-board_.setCell(cell.row, cell.col, selectedPiece);
-board_.setCell(selPos.row, selPos.col, std::nullopt);
+int distance = std::max(
+    std::abs(cell.row - selPos.row),
+    std::abs(cell.col - selPos.col));
+
+pendingMove_ = PendingMove{
+    selPos,
+    cell,
+    *selectedPiece,
+    clock_.now() + distance * 1000
+};
+
 selected_.reset();
 }
 
 void Game::handleWait(long ms) {
     clock_.advance(ms);
-    // No pending, timed moves yet -- nothing else to settle for now.
+    
+    if (pendingMove_.has_value() &&
+    clock_.now() >= pendingMove_->arrivalTime)
+    {
+        board_.setCell(
+            pendingMove_->to.row,
+            pendingMove_->to.col,
+            pendingMove_->piece);
+
+        board_.setCell(
+            pendingMove_->from.row,
+            pendingMove_->from.col,
+            std::nullopt);
+
+        pendingMove_.reset();
+    }
 }
 
 void Game::printBoard(std::ostream& out) const {

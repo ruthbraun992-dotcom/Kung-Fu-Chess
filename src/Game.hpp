@@ -34,6 +34,14 @@ private:
     Board board_;
     GameClock clock_;
     std::optional<Position> selected_;
+    struct PendingMove {
+    Position from;
+    Position to;
+    Piece piece;
+    long arrivalTime;
+};
+
+    std::optional<PendingMove> pendingMove_;
 
     static bool sameColor(const Piece& a, const Piece& b);
 };
