@@ -86,7 +86,19 @@ bool Piece::isValidShape(
                    (rowDiff == 1 && colDiff == 2);
 
         case Type::PAWN:
-            return false;
+            {
+                int rowStep = toRow - fromRow;
+                int colStep = std::abs(toCol - fromCol);
+
+                if (color_ == Color::WHITE)
+                {
+                    return rowStep == -1 && colStep <= 1;
+                }
+                else
+                {
+                    return rowStep == 1 && colStep <= 1;
+                }
+            }
     }
 
     return false;

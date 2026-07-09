@@ -53,6 +53,48 @@ bool Board::isValidMove(
     if (!piece.has_value())
         return false;
 
+    if (piece->type() == Piece::Type::PAWN)
+    {
+        int rowDiff = toRow - fromRow;
+        int colDiff = toCol - fromCol;
+
+        std::optional<Piece> destination = getCell(toRow, toCol);
+
+    if (piece->color() == Piece::Color::WHITE)
+    {
+            // הליכה קדימה
+            if (rowDiff == -1 && colDiff == 0)
+            {
+                return !destination.has_value();
+            }
+
+            // אכילה באלכסון
+            if (rowDiff == -1 && std::abs(colDiff) == 1)
+            {
+                return destination.has_value() &&
+                    destination->color() != piece->color();
+            }
+
+            return false;
+    }
+    else
+    {
+        // הליכה קדימה
+        if (rowDiff == 1 && colDiff == 0)
+        {
+            return !destination.has_value();
+        }
+
+        // אכילה באלכסון
+        if (rowDiff == 1 && std::abs(colDiff) == 1)
+        {
+            return destination.has_value() &&
+                   destination->color() != piece->color();
+        }
+
+        return false;
+    }
+}
 
     // בדיקת צורת התנועה לפי סוג הכלי
     if (!piece->isValidShape(
