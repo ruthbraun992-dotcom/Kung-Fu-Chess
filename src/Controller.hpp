@@ -1,6 +1,6 @@
 // Controller.hpp
 #pragma once
-#include "engine/GameEngine.hpp"
+#include "GameEngine.hpp"
 #include "BoardMapper.hpp"
 #include <optional>
 

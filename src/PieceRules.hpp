@@ -1,7 +1,7 @@
 // PieceRules.hpp
 #pragma once
-#include "model/Piece.hpp"
-#include "model/Board.hpp"
+#include "Piece.hpp"
+#include "Board.hpp"
 
 #include <vector>
 #include <utility>

@@ -1,8 +1,8 @@
 
 // BoardMapper.hpp
 #pragma once
-#include "model/Board.hpp"
-#include "model/Position.hpp"
+#include "Board.hpp"
+#include "position.hpp"
 #include <optional>
 
 namespace BoardMapper {

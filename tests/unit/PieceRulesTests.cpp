@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
-#include "model/Piece.hpp"
-#include "rules/PieceRules.hpp"
+#include "Piece.hpp"
+#include "PieceRules.hpp"
 
 TEST_CASE("King moves one step in any direction", "[rules][king]") {
     Piece king(Piece::Color::WHITE, Piece::Type::KING);

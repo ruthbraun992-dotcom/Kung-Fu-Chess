@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
-#include "model/Board.hpp"
-#include "model/Piece.hpp"
-#include "realtime/RealTimeArbiter.hpp"
+#include "Board.hpp"
+#include "Piece.hpp"
+#include "RealTimeArbiter.hpp"
 
 TEST_CASE("Motion does not arrive before its scheduled time", "[arbiter]") {
     Board board(3,3);

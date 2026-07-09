@@ -1,7 +1,7 @@
 // GameEngine.cpp
 #include "GameEngine.hpp"
 
-#include "rules/RuleEngine.hpp"
+#include "RuleEngine.hpp"
 #include <cmath>
 #include <algorithm>
 
@@ -11,6 +11,9 @@ bool GameEngine::requestMove(int fromRow, int fromCol, int toRow, int toCol) {
     if (!RuleEngine::validateMove(board_, fromRow, fromCol, toRow, toCol)) return false;
 
     auto piece = board_.getCell(fromRow, fromCol);
+    
+    if (!piece.has_value())
+        return false;
     int distance = std::max(std::abs(toRow - fromRow), std::abs(toCol - fromCol));
 
     arbiter_.startMotion(Motion{

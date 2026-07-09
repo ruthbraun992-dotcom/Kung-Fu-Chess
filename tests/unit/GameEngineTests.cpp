@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
-#include "model/Board.hpp"
-#include "model/Piece.hpp"
-#include "engine/GameEngine.hpp"
+#include "Board.hpp"
+#include "Piece.hpp"
+#include "GameEngine.hpp"
 
 TEST_CASE("Valid move request is accepted", "[gameengine]") {
     Board board(5,5);

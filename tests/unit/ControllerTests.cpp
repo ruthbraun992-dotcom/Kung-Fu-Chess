@@ -1,9 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
-#include "input/Controller.hpp"
-#include "model/Board.hpp"
-#include "model/Piece.hpp"
-#include "engine/GameEngine.hpp"
-#include "input/BoardMapper.hpp"
+#include "Controller.hpp"
+#include "Board.hpp"
+#include "Piece.hpp"
+#include "GameEngine.hpp"
+#include "BoardMapper.hpp"
 
 TEST_CASE("First click on a piece then second click requests a move", "[controller]") {
     Board board(5,5);

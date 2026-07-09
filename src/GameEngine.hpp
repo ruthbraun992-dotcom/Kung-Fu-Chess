@@ -1,7 +1,7 @@
 // GameEngine.hpp
 #pragma once
-#include "model/Board.hpp"
-#include "realtime/RealTimeArbiter.hpp"
+#include "Board.hpp"
+#include "RealTimeArbiter.hpp"
 #include <ostream>
 
 class GameEngine {

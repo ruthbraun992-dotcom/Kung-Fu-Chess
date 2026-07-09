@@ -1,4 +1,4 @@
-#include "model/Board.hpp"
+#include "Board.hpp"
 
 
 Board::Board(int rows, int cols)

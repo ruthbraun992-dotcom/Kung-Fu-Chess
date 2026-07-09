@@ -1,6 +1,6 @@
 #pragma once
-#include "model/Position.hpp"
-#include "model/Piece.hpp"
+#include "position.hpp"
+#include "Piece.hpp"
 
 
 struct Motion {

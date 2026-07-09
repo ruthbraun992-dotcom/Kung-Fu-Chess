@@ -1,7 +1,7 @@
 // RealTimeArbiter.hpp
 #pragma once
 #include "Motion.hpp"
-#include "model/Board.hpp"
+#include "Board.hpp"
 
 #include <optional>
 

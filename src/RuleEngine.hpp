@@ -1,6 +1,6 @@
 // RuleEngine.hpp
 #pragma once
-#include "model/Board.hpp"
+#include "Board.hpp"
 
 
 namespace RuleEngine {

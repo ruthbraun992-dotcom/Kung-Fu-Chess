@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
-#include "model/Board.hpp"
-#include "model/Piece.hpp"
-#include "rules/RuleEngine.hpp"
+#include "Board.hpp"
+#include "Piece.hpp"
+#include "RuleEngine.hpp"
 
 TEST_CASE("King cannot move two steps", "[ruleengine][king]") {
     Board board(3,3);

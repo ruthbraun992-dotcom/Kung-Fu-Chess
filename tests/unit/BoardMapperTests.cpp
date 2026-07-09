@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
-#include "model/Board.hpp"
-#include "input/BoardMapper.hpp"
+#include "Board.hpp"
+#include "BoardMapper.hpp"
 
 TEST_CASE("Pixel maps to correct cell", "[boardmapper]") {
     Board board(8,8);

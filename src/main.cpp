@@ -1,8 +1,8 @@
-#include "engine/GameEngine.hpp"
-#include "input/Controller.hpp"
-#include "io/BoardParser.hpp"
+#include "GameEngine.hpp"
+#include "Controller.hpp"
+#include "BoardParser.hpp"
 #include <iostream>
-#include "engine/GameEngine.hpp"
+#include "GameEngine.hpp"
 
 int main() {
     Board board(8, 8); // או תוצאה של BoardParser::parse(...)
