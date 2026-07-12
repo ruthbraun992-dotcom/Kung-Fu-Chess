@@ -1,4 +1,3 @@
-// PieceRules.cpp
 #include "PieceRules.hpp"
 #include <cmath>
 
@@ -28,14 +27,13 @@ bool isValidShape(const Piece& piece, int fromRow, int fromCol, int toRow, int t
             int rowStep = toRow - fromRow;
             int colStep = std::abs(toCol - fromCol);
             int forward = (piece.color() == Piece::Color::WHITE) ? -1 : 1;
-            int startRow = (piece.color() == Piece::Color::WHITE) ? 6 : 1; // ⚠ תלוי בגודל/כיוון הלוח שלך
+            int startRow = (piece.color() == Piece::Color::WHITE) ? 6 : 1;
 
             if (colStep == 0) {
-                if (rowStep == forward) return true; // צעד רגיל
-                if (rowStep == 2 * forward && fromRow == startRow) return true; // צעד כפול משורת פתיחה
+                if (rowStep == forward) return true;
+                if (rowStep == 2 * forward && fromRow == startRow) return true;
                 return false;
             }
-            // תזוזה אלכסונית (capture) - צעד יחיד בלבד
             return rowStep == forward && colStep == 1;
         }
     }
@@ -44,24 +42,35 @@ bool isValidShape(const Piece& piece, int fromRow, int fromCol, int toRow, int t
 
 std::vector<std::pair<int,int>> getPath(const Piece& piece, int fromRow, int fromCol, int toRow, int toCol) {
     std::vector<std::pair<int,int>> path;
-    if (fromRow == toRow && fromCol == toCol) return path; 
+    if (fromRow == toRow && fromCol == toCol) return path;
 
     int rowStep = 0, colStep = 0;
-   
+
     switch (piece.type()) {
         case Piece::Type::ROOK:
-        case Piece::Type::QUEEN:
             if (fromRow == toRow) colStep = (toCol > fromCol) ? 1 : -1;
             else if (fromCol == toCol) rowStep = (toRow > fromRow) ? 1 : -1;
             break;
+
         case Piece::Type::BISHOP:
             rowStep = (toRow > fromRow) ? 1 : -1;
             colStep = (toCol > fromCol) ? 1 : -1;
             break;
+
+        case Piece::Type::QUEEN:
+            if (fromRow == toRow) {
+                colStep = (toCol > fromCol) ? 1 : -1;
+            } else if (fromCol == toCol) {
+                rowStep = (toRow > fromRow) ? 1 : -1;
+            } else {
+                rowStep = (toRow > fromRow) ? 1 : -1;
+                colStep = (toCol > fromCol) ? 1 : -1;
+            }
+            break;
+
         case Piece::Type::PAWN: {
             int rowDiff = std::abs(toRow - fromRow);
             if (rowDiff == 2 && fromCol == toCol) {
-                // הצעד הכפול - יש תא ביניים אחד לבדיקה
                 int midRow = (fromRow + toRow) / 2;
                 path.push_back({midRow, fromCol});
             }
