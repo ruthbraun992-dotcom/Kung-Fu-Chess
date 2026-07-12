@@ -10,7 +10,7 @@ bool validateMove(const Board& board, int fromRow, int fromCol, int toRow, int t
       std::optional<Piece> piece = board.getCell(fromRow, fromCol);
     if (!piece.has_value()) return false;
     
-    if (!PieceRules::isValidShape(*piece, fromRow, fromCol, toRow, toCol)) return false;
+    if (!PieceRules::isValidShape(*piece, fromRow, fromCol, toRow, toCol, board.rows())) return false;
 
     std::optional<Piece> destination = board.getCell(toRow, toCol);
 

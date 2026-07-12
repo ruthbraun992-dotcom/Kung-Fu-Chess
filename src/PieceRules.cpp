@@ -3,7 +3,7 @@
 
 namespace PieceRules {
 
-bool isValidShape(const Piece& piece, int fromRow, int fromCol, int toRow, int toCol) {
+bool isValidShape(const Piece& piece, int fromRow, int fromCol, int toRow, int toCol, int boardRows) {
     int rowDiff = std::abs(toRow - fromRow);
     int colDiff = std::abs(toCol - fromCol);
 
@@ -27,7 +27,7 @@ bool isValidShape(const Piece& piece, int fromRow, int fromCol, int toRow, int t
             int rowStep = toRow - fromRow;
             int colStep = std::abs(toCol - fromCol);
             int forward = (piece.color() == Piece::Color::WHITE) ? -1 : 1;
-            int startRow = (piece.color() == Piece::Color::WHITE) ? 6 : 1;
+            int startRow = (piece.color() == Piece::Color::WHITE) ? boardRows - 1 : 0;
 
             if (colStep == 0) {
                 if (rowStep == forward) return true;
@@ -39,7 +39,6 @@ bool isValidShape(const Piece& piece, int fromRow, int fromCol, int toRow, int t
     }
     return false;
 }
-
 std::vector<std::pair<int,int>> getPath(const Piece& piece, int fromRow, int fromCol, int toRow, int toCol) {
     std::vector<std::pair<int,int>> path;
     if (fromRow == toRow && fromCol == toCol) return path;
