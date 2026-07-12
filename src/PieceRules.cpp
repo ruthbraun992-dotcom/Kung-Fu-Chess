@@ -28,7 +28,15 @@ bool isValidShape(const Piece& piece, int fromRow, int fromCol, int toRow, int t
             int rowStep = toRow - fromRow;
             int colStep = std::abs(toCol - fromCol);
             int forward = (piece.color() == Piece::Color::WHITE) ? -1 : 1;
-            return rowStep == forward && colStep <= 1;
+            int startRow = (piece.color() == Piece::Color::WHITE) ? 6 : 1; // ⚠ תלוי בגודל/כיוון הלוח שלך
+
+            if (colStep == 0) {
+                if (rowStep == forward) return true; // צעד רגיל
+                if (rowStep == 2 * forward && fromRow == startRow) return true; // צעד כפול משורת פתיחה
+                return false;
+            }
+            // תזוזה אלכסונית (capture) - צעד יחיד בלבד
+            return rowStep == forward && colStep == 1;
         }
     }
     return false;
@@ -36,8 +44,10 @@ bool isValidShape(const Piece& piece, int fromRow, int fromCol, int toRow, int t
 
 std::vector<std::pair<int,int>> getPath(const Piece& piece, int fromRow, int fromCol, int toRow, int toCol) {
     std::vector<std::pair<int,int>> path;
-    int rowStep = 0, colStep = 0;
+    if (fromRow == toRow && fromCol == toCol) return path; 
 
+    int rowStep = 0, colStep = 0;
+   
     switch (piece.type()) {
         case Piece::Type::ROOK:
         case Piece::Type::QUEEN:
@@ -48,8 +58,17 @@ std::vector<std::pair<int,int>> getPath(const Piece& piece, int fromRow, int fro
             rowStep = (toRow > fromRow) ? 1 : -1;
             colStep = (toCol > fromCol) ? 1 : -1;
             break;
+        case Piece::Type::PAWN: {
+            int rowDiff = std::abs(toRow - fromRow);
+            if (rowDiff == 2 && fromCol == toCol) {
+                // הצעד הכפול - יש תא ביניים אחד לבדיקה
+                int midRow = (fromRow + toRow) / 2;
+                path.push_back({midRow, fromCol});
+            }
+            return path;
+        }
         default:
-            return path; // KING, KNIGHT, PAWN: no intermediate cells
+            return path; // KING, KNIGHT: no intermediate cells
     }
 
     int row = fromRow + rowStep, col = fromCol + colStep;

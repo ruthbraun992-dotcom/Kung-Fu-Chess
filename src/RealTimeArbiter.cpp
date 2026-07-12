@@ -1,5 +1,5 @@
 #include "RealTimeArbiter.hpp"
-
+#include "Piece.hpp"
 void RealTimeArbiter::startMotion(Motion m) {
     long duration = m.arrivalTime;
     motions_.push_back(ActiveMotion{m, now_ + duration});
@@ -15,10 +15,18 @@ std::vector<Piece> RealTimeArbiter::advanceTime(long ms, Board& board) {
             if (existing.has_value()) {
                 captured.push_back(*existing); // הכלי שהיה ביעד נתפס עכשיו
             }
-
             board.setCell(it->motion.from.row, it->motion.from.col, std::nullopt);
-            board.setCell(it->motion.to.row, it->motion.to.col, it->motion.piece);
+
+            Piece landedPiece = it->motion.piece;
+            int lastRow = (landedPiece.color() == Piece::Color::WHITE) ? 0 : board.rows() - 1;
+
+            if (landedPiece.type() == Piece::Type::PAWN && it->motion.to.row == lastRow) {
+                landedPiece = Piece(landedPiece.color(),Piece::Type::QUEEN); // ⚠ תלוי בבנאי Piece שלך
+            }
+
+            board.setCell(it->motion.to.row, it->motion.to.col, landedPiece);
             it = motions_.erase(it);
+            
         } else {
             ++it;
         }
