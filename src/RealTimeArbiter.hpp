@@ -1,17 +1,27 @@
-// RealTimeArbiter.hpp
 #pragma once
 #include "Motion.hpp"
 #include "Board.hpp"
+#include "position.hpp"
 
-#include <optional>
+#include <vector>
 
 class RealTimeArbiter {
 public:
-    bool hasActiveMotion() const { return motion_.has_value(); }
-    void startMotion(Motion m) { motion_ = m; }
+    void startMotion(Motion m);
     void advanceTime(long ms, Board& board);
 
+    // חוסם premove: הכלי במשבצת from כבר באמצע תזוזה
+    bool hasActiveMotionFrom(const Position& from) const;
+
+    // חוסם movement conflict: יעד/מקור מתנגשים עם תזוזה פעילה אחרת
+    bool conflictsWithActiveMotion(const Position& from, const Position& to) const;
+
 private:
+    struct ActiveMotion {
+        Motion motion;
+        long arrivalAt;
+    };
+
     long now_ = 0;
-    std::optional<Motion> motion_;
+    std::vector<ActiveMotion> motions_;
 };

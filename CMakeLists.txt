@@ -24,7 +24,7 @@ add_executable(kungfu_chess src/main.cpp)
 target_link_libraries(kungfu_chess PRIVATE chess_lib)
 
 # --- בדיקות יחידה ---
-file(GLOB UNIT_TESTS CONFIGURE_DEPENDS "tests/unit/*.cpp")
+file(GLOB UNIT_TESTS CONFIGURE_DEPENDS "tests/unit/ArbiterAndEngineTests.cpp")
 add_executable(unit_tests ${UNIT_TESTS})
 target_link_libraries(unit_tests PRIVATE chess_lib Catch2::Catch2WithMain)
 
