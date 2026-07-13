@@ -21,3 +21,9 @@ void Controller::click(int x, int y) {
     engine_.requestMove(from.row, from.col, cellOpt->row, cellOpt->col);
     selected_.reset();
 }
+
+void Controller::jump(int x, int y) {
+    auto cellOpt = BoardMapper::pixelToCell(x, y, engine_.board());
+    if (!cellOpt.has_value()) return;
+    engine_.requestJump(cellOpt->row, cellOpt->col);
+}

@@ -1,4 +1,3 @@
-// Controller.hpp
 #pragma once
 #include "GameEngine.hpp"
 #include "BoardMapper.hpp"
@@ -8,6 +7,7 @@ class Controller {
 public:
     explicit Controller(GameEngine& engine) : engine_(engine) {}
     void click(int x, int y);
+    void jump(int x, int y);
 
 private:
     GameEngine& engine_;

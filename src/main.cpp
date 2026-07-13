@@ -61,12 +61,16 @@ int main() {
             long ms;
             iss >> ms;
             engine.wait(ms);
-        } else if (cmd == "print") {
+        } 
+         else if (cmd == "jump") {
+        int x, y; iss >> x >> y;
+        controller.jump(x, y);
+        }
+        else if (cmd == "print") {
             std::string what;
             iss >> what; // "board"
             engine.printBoard(std::cout);
         }
     }
-
     return 0;
 }

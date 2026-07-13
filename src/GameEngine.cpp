@@ -32,3 +32,17 @@ void GameEngine::wait(long ms) {
         }
     }
 }
+bool GameEngine::requestJump(int row, int col) {
+    if (gameOver_) return false;
+
+    Position pos{row, col};
+
+    if (arbiter_.hasActiveMotionFrom(pos)) return false; // כלל 4: כלי בתנועה לא יכול לקפוץ
+    if (arbiter_.isJumpingAt(pos)) return false;          // כלי כבר קופץ - לא כפל-קפיצה
+
+    auto piece = board_.getCell(row, col);
+    if (!piece.has_value()) return false; // כלל 5: אין כלי = לא ניתן לקפוץ (כולל כלי שנתפס)
+
+    arbiter_.startJump(pos, *piece, 1000L);
+    return true;
+}
