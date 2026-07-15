@@ -1,75 +1,55 @@
 #include "GameEngine.hpp"
 #include "Controller.hpp"
 #include "BoardParser.hpp"
+#include "ParseError.hpp"
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
-
-// מסיר רווחים מובילים/סוגרים משורה
-static std::string trim(const std::string& s) {
-    size_t start = s.find_first_not_of(" \t\r\n");
-    if (start == std::string::npos) return "";
-    size_t end = s.find_last_not_of(" \t\r\n");
-    return s.substr(start, end - start + 1);
-}
+#include <memory>
 
 int main() {
-    std::vector<std::string> lines;
-    std::string line;
-    while (std::getline(std::cin, line)) {
-        lines.push_back(line);
-    }
-
-    // שלב 1: איתור "Board:" ואיסוף שורות הלוח עד "Commands:"
     std::vector<std::string> boardLines;
-    size_t i = 0;
+    std::string line;
 
-    while (i < lines.size() && trim(lines[i]) != "Board:") {
-        ++i;
+    while (std::getline(std::cin, line)) {
+        if (line.find("Board:") != std::string::npos)
+            break;
     }
-    ++i; // לדלג על שורת "Board:" עצמה
 
-    while (i < lines.size() && trim(lines[i]) != "Commands:") {
-        std::string t = trim(lines[i]);
-        if (!t.empty()) {
-            boardLines.push_back(t);
-        }
-        ++i;
+    while (std::getline(std::cin, line)) {
+        if (line.find("Commands:") != std::string::npos)
+            break;
+        if (!line.empty())
+            boardLines.push_back(line);
     }
-    ++i; // לדלג על שורת "Commands:" עצמה
+    std::unique_ptr<GameEngine> enginePtr;
+    try {
+        Board board = BoardParser::parse(boardLines);
+        enginePtr = std::make_unique<GameEngine>(std::move(board));
+    } catch (const ParseError& e) {
+        std::cout << "ERROR " << e.what() << "\n";
+        return 0;
+    }
 
-    // שלב 2: פרסור הלוח והקמת המנוע
-    Board board = BoardParser::parse(boardLines);
-    GameEngine engine(std::move(board));
-    Controller controller(engine);
+    Controller controller(*enginePtr);
 
-    // שלב 3: עיבוד הפקודות אחת-אחת
-    for (; i < lines.size(); ++i) {
-        std::string t = trim(lines[i]);
-        if (t.empty()) continue;
-
-        std::istringstream iss(t);
+    while (std::getline(std::cin, line)) {
+        std::istringstream iss(line);
         std::string cmd;
-        iss >> cmd;
+        if (!(iss >> cmd)) continue;
 
         if (cmd == "click") {
-            int x, y;
-            iss >> x >> y;
+            int x, y; iss >> x >> y;
             controller.click(x, y);
+        } else if (cmd == "jump") {
+            int x, y; iss >> x >> y;
+            controller.jump(x, y);
         } else if (cmd == "wait") {
-            long ms;
-            iss >> ms;
-            engine.wait(ms);
-        } 
-         else if (cmd == "jump") {
-        int x, y; iss >> x >> y;
-        controller.jump(x, y);
-        }
-        else if (cmd == "print") {
-            std::string what;
-            iss >> what; // "board"
-            engine.printBoard(std::cout);
+            long ms; iss >> ms;
+            enginePtr->wait(ms);
+        } else if (cmd == "print") {
+            enginePtr->printBoard(std::cout);
         }
     }
     return 0;

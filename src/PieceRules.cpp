@@ -27,7 +27,7 @@ bool isValidShape(const Piece& piece, int fromRow, int fromCol, int toRow, int t
             int rowStep = toRow - fromRow;
             int colStep = std::abs(toCol - fromCol);
             int forward = (piece.color() == Piece::Color::WHITE) ? -1 : 1;
-            int startRow = (piece.color() == Piece::Color::WHITE) ? boardRows - 1 : 0;
+            int startRow = (piece.color() == Piece::Color::WHITE) ? boardRows - 2 : 1;
 
             if (colStep == 0) {
                 if (rowStep == forward) return true;
