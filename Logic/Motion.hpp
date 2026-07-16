@@ -7,5 +7,6 @@ struct Motion {
     Position from;
     Position to;
     Piece piece;
+    long startTime;
     long durationMs;
 };

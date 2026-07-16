@@ -85,12 +85,14 @@ int main()
         Controller controller(engine);
 
         BoardRenderer renderer(
-            8,
-            8,
-            cellSize,
-            spriteDir.string(),
-            offsetX,
-            offsetY);
+        8,
+        8,
+        cellSize,
+        spriteDir.string(),
+        offsetX,
+        offsetY,
+        engine
+        );
 
         cv::Mat canvas;
 
@@ -127,7 +129,17 @@ int main()
         {
             int key = cv::waitKey(50) & 0xFF;           
             engine.update(50);
+            auto pos =engine.currentPositionOf({7,2});
 
+if(pos.has_value())
+{std::cout << pos->row
+              << ", "
+              << pos->col
+              << std::endl;
+}
+        else{
+            std::cout<<"posssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss dont has_value\n";
+        }
             redraw();
             
 

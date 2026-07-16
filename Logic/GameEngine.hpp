@@ -2,6 +2,7 @@
 #include "RealTimeArbiter.hpp"
 #include <ostream>
 #include "Board.hpp"
+#include "RenderPosition.hpp"
 
 class GameEngine {
 public:
@@ -17,6 +18,9 @@ public:
         return board_;
     }
     void update(long ms);
+    std::optional<RenderPosition>
+    currentPositionOf(const Position& from) const;
+
 private:
     Board board_;
     RealTimeArbiter arbiter_;

@@ -2,7 +2,8 @@
 #include <iostream>
 
 void RealTimeArbiter::startMotion(Motion m) {
-       std::cout 
+    m.startTime = now_;  
+    std::cout 
         << "START  now = "
         << now_
         << " duration = "
@@ -123,4 +124,47 @@ bool RealTimeArbiter::isJumpingAt(const Position& pos) const {
         if (j.at.row == pos.row && j.at.col == pos.col) return true;
     }
     return false;
+}
+
+
+std::optional<RenderPosition>
+RealTimeArbiter::currentPositionOf(const Position& from) const
+{
+    for(const auto& active : motions_)
+    {
+        if(active.motion.from.row == from.row &&
+           active.motion.from.col == from.col)
+        {
+            double progress =
+                double(now_ - active.motion.startTime)
+                /
+                active.motion.durationMs;
+
+
+            if(progress < 0)
+                progress = 0;
+
+            if(progress > 1)
+                progress = 1;
+
+
+            double row =
+                active.motion.from.row +
+                (active.motion.to.row -
+                 active.motion.from.row)
+                 * progress;
+
+
+            double col =
+                active.motion.from.col +
+                (active.motion.to.col -
+                 active.motion.from.col)
+                 * progress;
+
+
+            return RenderPosition{row,col};
+        }
+    }
+
+    return std::nullopt;
 }

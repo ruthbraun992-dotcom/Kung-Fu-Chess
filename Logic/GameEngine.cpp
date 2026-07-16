@@ -34,6 +34,7 @@ std::cout << "Rule valid = "
     motion.from = from,
     motion.to = to,
     motion.piece = *piece,
+    motion.startTime=0,
     motion.durationMs = distance * 100L};
 
     arbiter_.startMotion(motion);
@@ -58,4 +59,9 @@ bool GameEngine::requestJump(int row, int col) {
 void GameEngine::update(long ms)
 {
     arbiter_.advanceTime(ms, board_);
+}
+std::optional<RenderPosition>
+GameEngine::currentPositionOf(const Position& from) const
+{
+    return arbiter_.currentPositionOf(from);
 }

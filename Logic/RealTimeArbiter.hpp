@@ -3,6 +3,7 @@
 #include "Board.hpp"
 #include "position.hpp"
 #include "Piece.hpp"
+#include "RenderPosition.hpp"
 
 #include <vector>
 
@@ -17,8 +18,9 @@ public:
     bool hasActiveMotionFrom(const Position& from) const;
     bool conflictsWithActiveMotion(const Position& from, const Position& to) const;
     bool isJumpingAt(const Position& pos) const;
+    std::optional<RenderPosition> currentPositionOf(const Position& from) const;
 
-private:
+    private:
     struct ActiveMotion {
         Motion motion;
         long arrivalAt;

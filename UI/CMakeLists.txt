@@ -17,10 +17,9 @@ add_executable(kungfu_chess
 
 
 target_include_directories(kungfu_chess PRIVATE
-
     ${OPENCV_INCLUDE_DIR}
-
     ${CMAKE_SOURCE_DIR}/Logic
+    ${CMAKE_SOURCE_DIR}/Common
 )
 
 
