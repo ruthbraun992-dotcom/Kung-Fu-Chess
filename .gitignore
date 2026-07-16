@@ -41,7 +41,6 @@
 
 # Build directories
 build/
-Build/
 build-*/
 
 # CMake generated files
@@ -68,3 +67,6 @@ vcpkg_installed/
 Testing/
 .cache/
 build/
+
+UI/OpenCV_451/
+.vscode/
