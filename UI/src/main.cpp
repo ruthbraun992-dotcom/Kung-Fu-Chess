@@ -113,20 +113,23 @@ int main()
         mouse.setOnClick([&](const Position& pos)
         {
             controller.click(pos);
-            engine.update(10000);
             redraw();
         });
 
         cv::startWindowThread();
         cv::namedWindow("Image", cv::WINDOW_AUTOSIZE);
-
+        cv::namedWindow("Image", cv::WINDOW_NORMAL);
         redraw();
 
         mouse.attachTo("Image");
 
         while (true)
         {
-            int key = cv::waitKey(50) & 0xFF;
+            int key = cv::waitKey(50) & 0xFF;           
+            engine.update(50);
+
+            redraw();
+            
 
             if (key == 27)
                 break;

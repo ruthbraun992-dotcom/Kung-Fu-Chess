@@ -1,8 +1,18 @@
 #include "RealTimeArbiter.hpp"
+#include <iostream>
 
 void RealTimeArbiter::startMotion(Motion m) {
-    long duration = m.arrivalTime;
-    motions_.push_back(ActiveMotion{m, now_ + duration});
+       std::cout 
+        << "START  now = "
+        << now_
+        << " duration = "
+        << m.durationMs
+        << " ms\n";
+    motions_.push_back(ActiveMotion{m, now_ + m.durationMs});
+     std::cout
+        << "stored arrival="
+        << motions_.back().arrivalAt
+        << "\n";
 }
 
 void RealTimeArbiter::startJump(Position at, Piece piece, long durationMs) {
@@ -10,11 +20,35 @@ void RealTimeArbiter::startJump(Position at, Piece piece, long durationMs) {
 }
 
 std::vector<Piece> RealTimeArbiter::advanceTime(long ms, Board& board) {
-    now_ += ms;
+std::cout << "advanceTime RECEIVED ms = " << ms << "\n";
+std::cout 
+<< "advance now before = "
+<< now_
+<< "\n";
+
+now_ += ms;
+std::cout << "now_ increased by = " << ms << "\n";
+if (!motions_.empty())
+{
+    std::cout
+    << "ACTIVE MOTIONS: "
+    << motions_.size()
+    << "\n";
+}
+std::cout 
+<< "advance now after = "
+<< now_
+<< "\n";
     std::vector<Piece> captured;
 
     // שלב 1: פתרון תנועות שהגיעו ליעד - כולל בדיקת תפיסה-באוויר
     for (auto it = motions_.begin(); it != motions_.end(); ) {
+       std::cout
+<< "now="
+<< now_
+<< " arrival="
+<< it->arrivalAt
+<< "\n";
         if (now_ >= it->arrivalAt) {
             Position to = it->motion.to;
             bool caughtByJumper = false;
@@ -42,7 +76,14 @@ std::vector<Piece> RealTimeArbiter::advanceTime(long ms, Board& board) {
                 board.setCell(to.row, to.col, landedPiece);
             }
             // אם caughtByJumper==true - אין שינוי בתא היעד, הכלי הקופץ נשאר כפי שהוא
-
+std::cout 
+<< "Motion finished from "
+<< it->motion.from.row << ","
+<< it->motion.from.col
+<< " to "
+<< it->motion.to.row << ","
+<< it->motion.to.col
+<< "\n";
             it = motions_.erase(it);
         } else {
             ++it;

@@ -9,7 +9,6 @@ public:
 
     bool requestMove(int fromRow, int fromCol, int toRow, int toCol);
     bool requestJump(int row, int col);
-    void wait(long ms);
     void printBoard(std::ostream& out) const { board_.Printer(out); }
     const Board& board() const { return board_; }
     bool isGameOver() const { return gameOver_; }

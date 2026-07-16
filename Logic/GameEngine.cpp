@@ -30,23 +30,19 @@ std::cout << "Rule valid = "
     if (!piece.has_value()) return false;
 
     int distance = std::max(std::abs(toRow - fromRow), std::abs(toCol - fromCol));
-    arbiter_.startMotion(Motion{from, to, *piece, distance * 1000L});
+    Motion motion {
+    motion.from = from,
+    motion.to = to,
+    motion.piece = *piece,
+    motion.durationMs = distance * 100L};
+
+    arbiter_.startMotion(motion);
     return true;
 }
 
-void GameEngine::wait(long ms) {
-    if (gameOver_) return; // אין טעם לקדם זמן אחרי סיום
-
-    auto captured = arbiter_.advanceTime(ms, board_);
-    for (const auto& piece : captured) {
-        if (piece.type() == Piece::Type::KING) {
-            gameOver_ = true;
-            break;
-        }
-    }
-}
 bool GameEngine::requestJump(int row, int col) {
     if (gameOver_) return false;
+
 
     Position pos{row, col};
 
@@ -56,7 +52,7 @@ bool GameEngine::requestJump(int row, int col) {
     auto piece = board_.getCell(row, col);
     if (!piece.has_value()) return false; // כלל 5: אין כלי = לא ניתן לקפוץ (כולל כלי שנתפס)
 
-    arbiter_.startJump(pos, *piece, 1000L);
+    arbiter_.startJump(pos, *piece, 100L);
     return true;
 }
 void GameEngine::update(long ms)
