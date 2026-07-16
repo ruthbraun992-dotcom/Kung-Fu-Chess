@@ -13,7 +13,11 @@ public:
     void printBoard(std::ostream& out) const { board_.Printer(out); }
     const Board& board() const { return board_; }
     bool isGameOver() const { return gameOver_; }
-
+    const Board& getBoard() const
+    {
+        return board_;
+    }
+    void update(long ms);
 private:
     Board board_;
     RealTimeArbiter arbiter_;

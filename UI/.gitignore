@@ -1,0 +1,17 @@
+/cpp/OpenCV_451
+/py/.idea
+/py/__pycache__
+/.vscode
+/java/target/
+/.idea
+
+build/
+*.dll
+build/
+cpp/build/
+*.dll
+*.exe
+*.obj
+cpp/build/
+build/
+*.dll

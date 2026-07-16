@@ -2,6 +2,8 @@
 #include "RuleEngine.hpp"
 #include <cmath>
 #include <algorithm>
+#include <iostream>
+
 
 bool GameEngine::requestMove(int fromRow, int fromCol, int toRow, int toCol) {
     if (gameOver_) return false; // אחרי סיום המשחק - כל פקודה מתעלמת
@@ -11,8 +13,19 @@ bool GameEngine::requestMove(int fromRow, int fromCol, int toRow, int toCol) {
 
     if (arbiter_.hasActiveMotionFrom(from)) return false;
     if (arbiter_.conflictsWithActiveMotion(from, to)) return false;
-    if (!RuleEngine::validateMove(board_, fromRow, fromCol, toRow, toCol)) return false;
+    bool valid = RuleEngine::validateMove(
+        board_,
+        fromRow,
+        fromCol,
+        toRow,
+        toCol
+    );
 
+std::cout << "Rule valid = "
+          << valid
+          << std::endl;
+
+    if (!valid)    return false;
     auto piece = board_.getCell(fromRow, fromCol);
     if (!piece.has_value()) return false;
 
@@ -45,4 +58,8 @@ bool GameEngine::requestJump(int row, int col) {
 
     arbiter_.startJump(pos, *piece, 1000L);
     return true;
+}
+void GameEngine::update(long ms)
+{
+    arbiter_.advanceTime(ms, board_);
 }

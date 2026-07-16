@@ -34,7 +34,7 @@ bool isValidShape(const Piece& piece, int fromRow, int fromCol, int toRow, int t
                 if (rowStep == 2 * forward && fromRow == startRow) return true;
                 return false;
             }
-            return rowStep == forward && colStep == 1;
+            return rowStep == forward && colStep == 1;//TO DO רק אם יש שם כלי אחר יריב
         }
     }
     return false;

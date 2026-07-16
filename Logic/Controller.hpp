@@ -6,8 +6,10 @@
 class Controller {
 public:
     explicit Controller(GameEngine& engine) : engine_(engine) {}
-    void click(int x, int y);
-    void jump(int x, int y);
+    void click(const Position& cell);
+    void jump(const Position& cell);
+
+    std::optional<Position> getSelected() const { return selected_; }
 
 private:
     GameEngine& engine_;
