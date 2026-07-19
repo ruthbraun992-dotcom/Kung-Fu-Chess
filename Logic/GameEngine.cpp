@@ -65,3 +65,11 @@ GameEngine::currentPositionOf(const Position& from) const
 {
     return arbiter_.currentPositionOf(from);
 }
+
+
+long GameEngine::currentTime() const
+{
+    return arbiter_.currentTime();
+}
+
+

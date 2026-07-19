@@ -168,3 +168,8 @@ RealTimeArbiter::currentPositionOf(const Position& from) const
 
     return std::nullopt;
 }
+
+long RealTimeArbiter::currentTime() const
+{
+    return now_;
+}

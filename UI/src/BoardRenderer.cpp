@@ -17,8 +17,7 @@ void BoardRenderer::draw(const cv::Mat& boardImage,const Board& board,cv::Mat& o
             auto piece=board.getCell(row,col);
             if(!piece.has_value()) continue;
 
-            const cv::Mat& sprite=spriteManager_.getSprite(piece->color(),piece->type());
-
+            const cv::Mat& sprite = spriteManager_.getSprite(piece->color(), piece->type(),  "idle", engine_.currentTime());
             double pixelX,pixelY;
             auto renderPos=engine_.currentPositionOf({row,col});
 

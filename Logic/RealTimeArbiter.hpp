@@ -19,7 +19,8 @@ public:
     bool conflictsWithActiveMotion(const Position& from, const Position& to) const;
     bool isJumpingAt(const Position& pos) const;
     std::optional<RenderPosition> currentPositionOf(const Position& from) const;
-
+    long currentTime() const;
+    
     private:
     struct ActiveMotion {
         Motion motion;

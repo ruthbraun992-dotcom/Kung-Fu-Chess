@@ -21,7 +21,11 @@ target_include_directories(kungfu_chess PRIVATE
     ${CMAKE_SOURCE_DIR}/Logic
     ${CMAKE_SOURCE_DIR}/Common
 )
-
+target_include_directories(kungfu_chess PRIVATE
+    ${CMAKE_SOURCE_DIR}/Logic
+    ${CMAKE_SOURCE_DIR}/Common
+    ${OPENCV_INCLUDE_DIR}
+)
 
 target_link_directories(kungfu_chess PRIVATE
 

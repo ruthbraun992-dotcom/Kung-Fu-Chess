@@ -18,5 +18,11 @@ target_include_directories(chess_lib PUBLIC
     Common
 )
 
+target_include_directories(chess_lib PUBLIC
+    Logic
+    Common
+    ${CMAKE_SOURCE_DIR}/ThirdParty
+)
+
 
 add_subdirectory(UI)

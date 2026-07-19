@@ -138,7 +138,7 @@ if(pos.has_value())
               << std::endl;
 }
         else{
-            std::cout<<"posssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss dont has_value\n";
+            std::cout<<"pos dont has_value\n";
         }
             redraw();
             

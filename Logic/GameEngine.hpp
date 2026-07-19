@@ -20,6 +20,7 @@ public:
     void update(long ms);
     std::optional<RenderPosition>
     currentPositionOf(const Position& from) const;
+    long currentTime() const;
 
 private:
     Board board_;
