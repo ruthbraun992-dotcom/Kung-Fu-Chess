@@ -4,6 +4,11 @@
 
 void Controller::click(const Position& cell)
 {
+    if (engine_.isGameOver())
+{
+    selected_.reset();
+    return;
+}
     if (!selected_.has_value())
     {
         if (engine_.board().getCell(cell.row, cell.col).has_value())
@@ -43,6 +48,11 @@ std::cout << "before request move move from "
         from.col,
         cell.row,
         cell.col);
+        if (engine_.isGameOver())
+{
+    selected_.reset();
+    return;
+}
 std::cout << "after request move: move from "
           << from.row << "," << from.col
           << " to "

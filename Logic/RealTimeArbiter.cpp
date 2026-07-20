@@ -147,7 +147,8 @@ RealTimeArbiter::currentPositionOf(const Position& from) const
         if (active.motion.from.row == from.row && active.motion.from.col == from.col) {
             double progress = (active.motion.durationMs > 0)
             ? double(now_ - active.motion.startTime) / active.motion.durationMs
-            : 1.0;   // אם משום מה durationMs==0, נחשיב כמסיים מיד ולא ניצור NaNif (progress < 0) progress = 0;
+            : 1.0;   // אם משום מה durationMs==0, נחשיב כמסיים מיד ולא ניצור NaN
+            if (progress < 0) progress = 0;
             if (progress > 1) progress = 1;
 
             double row = active.motion.from.row +

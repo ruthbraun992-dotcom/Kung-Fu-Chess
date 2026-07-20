@@ -8,7 +8,7 @@ public:
     explicit Controller(GameEngine& engine) : engine_(engine) {}
     void click(const Position& cell);
     void jump(const Position& cell);
-
+    bool Controller::isGameOver() const {return engine_.isGameOver();}
     std::optional<Position> getSelected() const { return selected_; }
 
 private:

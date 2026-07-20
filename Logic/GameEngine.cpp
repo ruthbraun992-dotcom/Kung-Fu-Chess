@@ -60,8 +60,19 @@ bool GameEngine::requestJump(int row, int col) {
     return true;
 }
 
-void GameEngine::update(long ms) { arbiter_.advanceTime(ms, board_); }
+void GameEngine::update(long ms)
+{
+    auto captured = arbiter_.advanceTime(ms, board_);
 
+    for (const auto& piece : captured)
+    {
+        if (piece.type() == Piece::Type::KING)
+        {
+            gameOver_ = true;
+            break;
+        }
+    }
+}
 std::optional<RenderPosition>
 GameEngine::currentPositionOf(const Position& from) const {
     return arbiter_.currentPositionOf(from);

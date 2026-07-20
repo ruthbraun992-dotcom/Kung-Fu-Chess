@@ -66,6 +66,10 @@ int main()
             "C:\\Users\\This User\\Downloads\\board_classic.png";
 
         Img boardImage;
+        Img gameOverImage;
+        const auto gameOverPath = resolveAssetPath("../GameOver.png");
+
+        gameOverImage.read(gameOverPath.string(), {800, 800}, false);
         boardImage.read(boardImagePath.string(), {800, 800}, false);
 
 const std::filesystem::path spriteDir = resolveAssetPath("../pieces3");
@@ -99,11 +103,19 @@ std::cout << "spriteDir = " << spriteDir << " exists=" << std::filesystem::exist
         MouseHandler mouse(translator);
 
         auto redraw = [&]()
-        {
-            renderer.setSelectedCell(controller.getSelected());
-            renderer.draw(img, engine.board(), canvas);
-            cv::imshow("Image", canvas);
-        };
+{
+    if (controller.isGameOver())
+    {
+        canvas = gameOverImage.get_mat().clone();
+    }
+    else
+    {
+        renderer.setSelectedCell(controller.getSelected());
+        renderer.draw(img, engine.board(), canvas);
+    }
+
+    cv::imshow("Image", canvas);
+    };
 
         mouse.setOnClick([&](const Position& pos)
         {
