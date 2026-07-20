@@ -1,27 +1,17 @@
 #include "SpriteManager.hpp"
-#include <fstream>
-#include <nlohmann/json.hpp>
 #include <filesystem>
+#include <algorithm>
 #include <stdexcept>
 
-using json = nlohmann::json;
-
 SpriteManager::SpriteManager(const std::string& assetDir)
-    : assetDir_(assetDir)
+    : assetDir_(assetDir), configs_(assetDir)
 {
     loadAll();
-}
-
-std::string SpriteManager::makeKey(Piece::Color color, Piece::Type type) const
-{
-    return std::to_string(static_cast<int>(color)) + "_" +
-           std::to_string(static_cast<int>(type));
 }
 
 std::string SpriteManager::fileName(Piece::Color color, Piece::Type type) const
 {
     std::string code;
-
     switch (type)
     {
         case Piece::Type::KING:   code = "K"; break;
@@ -31,9 +21,14 @@ std::string SpriteManager::fileName(Piece::Color color, Piece::Type type) const
         case Piece::Type::KNIGHT: code = "N"; break;
         case Piece::Type::PAWN:   code = "P"; break;
     }
-
     std::string colorCode = (color == Piece::Color::WHITE) ? "W" : "B";
     return code + colorCode;
+}
+
+std::string SpriteManager::makeKey(Piece::Color color, Piece::Type type, const std::string& state) const
+{
+    return std::to_string(static_cast<int>(color)) + "_" +
+           std::to_string(static_cast<int>(type)) + "_" + state;
 }
 
 std::string SpriteManager::spritePath(Piece::Color color, Piece::Type type) const
@@ -49,31 +44,20 @@ std::string SpriteManager::spritePath(Piece::Color color, Piece::Type type) cons
 
 void SpriteManager::loadAll()
 {
-    std::vector<std::string> states =
+    static const std::vector<std::string> states =
     {
-        "idle",
-        "move",
-        "jump",
-        "attack",
-        "short_rest",
-        "long_rest"
+        "idle", "move", "jump", "attack", "short_rest", "long_rest"
     };
 
-    for(int c = 0; c < 2; ++c)
+    for (int c = 0; c < 2; ++c)
     {
-        Piece::Color color =
-            static_cast<Piece::Color>(c);
-
-        for(int t = 0; t < 6; ++t)
+        Piece::Color color = static_cast<Piece::Color>(c);
+        for (int t = 0; t < 6; ++t)
         {
-            Piece::Type type =
-                static_cast<Piece::Type>(t);
+            Piece::Type type = static_cast<Piece::Type>(t);
 
-            for(const std::string& state : states)
+            for (const std::string& state : states)
             {
-                std::string key =
-                    makeKey(color, type) + "_" + state;
-
                 std::filesystem::path folder =
                     std::filesystem::path(assetDir_) /
                     fileName(color, type) /
@@ -81,86 +65,47 @@ void SpriteManager::loadAll()
                     state /
                     "sprites";
 
-                if(!std::filesystem::exists(folder))
+                if (!std::filesystem::exists(folder))
                     continue;
 
-                std::vector<cv::Mat> frames;
+                std::vector<std::filesystem::path> framePaths;
+                for (const auto& f : std::filesystem::directory_iterator(folder))
+                    if (f.is_regular_file()) framePaths.push_back(f.path());
+                std::sort(framePaths.begin(), framePaths.end());
 
-                for(const auto& file :
-                    std::filesystem::directory_iterator(folder))
+                std::vector<cv::Mat> imgs;
+                for (const auto& p : framePaths)
                 {
-                    cv::Mat img =
-                        cv::imread(file.path().string(),
-                                   cv::IMREAD_UNCHANGED);
-
-                    if(!img.empty())
-                        frames.push_back(img);
+                    cv::Mat img = cv::imread(p.string(), cv::IMREAD_UNCHANGED);
+                    if (!img.empty())
+                        imgs.push_back(std::move(img));
                 }
 
-                if(frames.empty())
-                    continue;
-
-                std::filesystem::path configPath =
-                    folder.parent_path() /
-                    "config.json";
-
-                int fps = 8;
-                bool loop = true;
-
-                if(std::filesystem::exists(configPath))
-                {
-                    std::ifstream in(configPath);
-
-                    json j;
-                    in >> j;
-
-                    fps =
-                        j["graphics"]["frames_per_sec"];
-
-                    loop =
-                        j["graphics"]["is_loop"];
-                }
-
-                Animation animation;
-                animation.frames = std::move(frames);
-                animation.framesPerSecond = fps;
-                animation.isLoop = loop;
-
-                sprites_[key] = std::move(animation);
+                if (!imgs.empty())
+                    frames_[makeKey(color, type, state)] = std::move(imgs);
             }
         }
     }
 }
 
-const cv::Mat&
-SpriteManager::getSprite(
-    Piece::Color color,
-    Piece::Type type,
-    const std::string& state,
-    long now
-) const
+const cv::Mat& SpriteManager::getSprite(
+    Piece::Color color, Piece::Type type,
+    const std::string& state, long now) const
 {
-    std::string key =
-        makeKey(color, type) + "_" + state;
+    std::string key = makeKey(color, type, state);
+    auto it = frames_.find(key);
+    if (it == frames_.end())
+        throw std::runtime_error("Missing sprite frames: " + key);
 
-    auto it = sprites_.find(key);
+    const auto& cfg = configs_.get(color, type, stringToState(state));
+    const auto& frames = it->second;
 
-    if(it == sprites_.end())
-        throw std::runtime_error("Missing animation: " + key);
+    int frame = static_cast<int>((now * cfg.framesPerSecond) / 1000);
 
-    const Animation& anim = it->second;
+    if (cfg.isLoop)
+        frame %= static_cast<int>(frames.size());
+    else if (frame >= static_cast<int>(frames.size()))
+        frame = static_cast<int>(frames.size()) - 1;
 
-    int frame =
-        (now * anim.framesPerSecond) / 1000;
-
-    if(anim.isLoop)
-    {
-        frame %= anim.frames.size();
-    }
-    else if(frame >= static_cast<int>(anim.frames.size()))
-    {
-        frame = static_cast<int>(anim.frames.size()) - 1;
-    }
-
-    return anim.frames[frame];
+    return frames[frame];
 }

@@ -5,6 +5,7 @@
 #include <optional>
 #include <vector>
 #include <utility>
+#include "PieceState.hpp"
 
 class Piece {
 public:
@@ -21,8 +22,18 @@ public:
 
     static std::optional<Piece> fromToken(const std::string& token);
 
-private:
+    PieceState state() const
+    {
+        return state_;
+    }
 
+    void setState(PieceState state)
+    {
+        state_ = state;
+    }
+    
+private:
+    PieceState state_ = PieceState::IDLE;
     Color color_;
     Type type_;
 

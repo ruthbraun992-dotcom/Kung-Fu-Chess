@@ -1,82 +1,115 @@
 #include "BoardRenderer.hpp"
+#include "PieceState.hpp"
+#include <iostream>
+BoardRenderer::BoardRenderer(int rows, int cols, int cellSize,
+                              const SpriteManager& sprites,
+                              int offsetX, int offsetY, const GameEngine& engine)
+: rows_(rows), cols_(cols), cellSize_(cellSize),
+  offsetX_(offsetX), offsetY_(offsetY),
+  engine_(engine), sprites_(sprites) {}
 
-BoardRenderer::BoardRenderer(int rows,int cols,int cellSize,const std::string& assetDir,int offsetX,int offsetY,const GameEngine& engine)
-: rows_(rows),cols_(cols),cellSize_(cellSize),offsetX_(offsetX),offsetY_(offsetY),spriteManager_(assetDir),engine_(engine){}
-
-void BoardRenderer::setSelectedCell(const std::optional<Position>& selected){selectedCell_=selected;}
-
-void BoardRenderer::draw(const cv::Mat& boardImage,const Board& board,cv::Mat& out) const
+void BoardRenderer::setSelectedCell(const std::optional<Position>& selected)
 {
-    if(boardImage.empty()) return;
-    out=boardImage.clone();
+    selectedCell_ = selected;
+}
 
-    for(int row=0;row<rows_;row++)
+void BoardRenderer::draw(const cv::Mat& boardImage, const Board& board, cv::Mat& out) const
+{
+    if (boardImage.empty()) return;
+    out = boardImage.clone();
+
+    for (int row = 0; row < rows_; row++)
     {
-        for(int col=0;col<cols_;col++)
+        for (int col = 0; col < cols_; col++)
         {
-            auto piece=board.getCell(row,col);
-            if(!piece.has_value()) continue;
+            auto piece = board.getCell(row, col);
+            if (!piece.has_value()) continue;
 
-            const cv::Mat& sprite = spriteManager_.getSprite(piece->color(), piece->type(),  "idle", engine_.currentTime());
-            double pixelX,pixelY;
-            auto renderPos=engine_.currentPositionOf({row,col});
+            // המצב האמיתי של הכלי (idle/move/jump/attack/rest) - לא קשיח
+            auto activeState = engine_.currentStateOf({row, col});
+            PieceState renderState = activeState.value_or(piece->state());
 
-            if(renderPos.has_value())
+            const cv::Mat& sprite = sprites_.getSprite(
+                piece->color(),
+                piece->type(),
+                stateToString(renderState),
+                engine_.currentTime());
+
+            double pixelX, pixelY;
+            auto renderPos = engine_.currentPositionOf({row, col});
+
+            if (renderPos.has_value())
             {
-                pixelX=offsetX_+renderPos->col*cellSize_;
-                pixelY=offsetY_+renderPos->row*cellSize_;
+                pixelX = offsetX_ + renderPos->col * cellSize_;
+                pixelY = offsetY_ + renderPos->row * cellSize_;
             }
+
             else
             {
-                pixelX=offsetX_+col*cellSize_;
-                pixelY=offsetY_+row*cellSize_;
+                pixelX = offsetX_ + col * cellSize_;
+                pixelY = offsetY_ + row * cellSize_;
             }
-
-            drawSprite(out,sprite,pixelX,pixelY);
+            if (pixelX < 0 || pixelY < 0 || pixelX + cellSize_ > 800 || pixelY + cellSize_ > 800)
+{
+    std::cout << "SUSPECT piece at board(" << row << "," << col << ")"
+               << " renderPos.has_value=" << renderPos.has_value()
+               << " pixelX=" << pixelX << " pixelY=" << pixelY
+               << std::endl;
+}
+            drawSprite(out, sprite, pixelX, pixelY);
         }
     }
 
-    if(selectedCell_.has_value())
+    if (selectedCell_.has_value())
     {
-        int x=offsetX_+selectedCell_->col*cellSize_;
-        int y=offsetY_+selectedCell_->row*cellSize_;
+        int x = offsetX_ + selectedCell_->col * cellSize_;
+        int y = offsetY_ + selectedCell_->row * cellSize_;
 
-        cv::rectangle(out,cv::Rect(x+2,y+2,cellSize_-4,cellSize_-4),cv::Scalar(0,255,0),2);
+        cv::rectangle(out, cv::Rect(x + 2, y + 2, cellSize_ - 4, cellSize_ - 4), cv::Scalar(0, 255, 0), 2);
     }
 }
 
-void BoardRenderer::drawSprite(cv::Mat& canvas,const cv::Mat& sprite,double x,double y) const
+void BoardRenderer::drawSprite(cv::Mat& canvas, const cv::Mat& sprite, double x, double y) const
 {
-    if(sprite.empty()) return;
+    if (sprite.empty()) return;
+
+    int ix = (int)x;
+    int iy = (int)y;
+
+    // הגנה: אם החישוב יצא מחוץ לתמונה (באג במקום אחר), נדלג במקום לקרוס
+    if (ix < 0 || iy < 0 || ix + cellSize_ > canvas.cols || iy + cellSize_ > canvas.rows)
+    {
+        std::cout << "OUT OF BOUNDS drawSprite: x=" << x << " y=" << y
+                   << " ix=" << ix << " iy=" << iy
+                   << " canvas=" << canvas.cols << "x" << canvas.rows
+                   << std::endl;
+        return;
+    }
 
     cv::Mat resized;
-    cv::resize(sprite,resized,cv::Size(cellSize_,cellSize_));
+    cv::resize(sprite, resized, cv::Size(cellSize_, cellSize_));
 
-    int ix=(int)x;
-    int iy=(int)y;
-
-    cv::Mat roi=canvas(cv::Rect(ix,iy,cellSize_,cellSize_));
-
-    if(resized.channels()==4)
+    cv::Mat roi = canvas(cv::Rect(ix, iy, cellSize_, cellSize_));
+    if (resized.channels() == 4)
     {
-        for(int r=0;r<resized.rows;r++)
+        for (int r = 0; r < resized.rows; r++)
         {
-            for(int c=0;c<resized.cols;c++)
+            for (int c = 0; c < resized.cols; c++)
             {
-                cv::Vec4b pixel=resized.at<cv::Vec4b>(r,c);
-                uchar alpha=pixel[3];
+                cv::Vec4b pixel = resized.at<cv::Vec4b>(r, c);
+                uchar alpha = pixel[3];
 
-                if(alpha==0) continue;
+                if (alpha == 0) continue;
 
-                if(alpha==255)
+                if (alpha == 255)
                 {
-                    roi.at<cv::Vec3b>(r,c)={pixel[0],pixel[1],pixel[2]};
+                    roi.at<cv::Vec3b>(r, c) = {pixel[0], pixel[1], pixel[2]};
                 }
                 else
                 {
-                    cv::Vec3b& dst=roi.at<cv::Vec3b>(r,c);
-                    for(int k=0;k<3;k++)
-                        dst[k]=(pixel[k]*alpha+dst[k]*(255-alpha))/255;
+                    cv::Vec3b& dst = roi.at<cv::Vec3b>(r, c);
+                    for (int k = 0; k < 3; k++)
+                        dst[k] = (pixel[k] * alpha + dst[k] * (255 - alpha)) / 255;
                 }
             }
         }

@@ -22,6 +22,7 @@ public:
 
 
     void setOnClick(ClickCallback callback);
+    void setOnRightClick(ClickCallback callback);
 
 
 private:
@@ -38,5 +39,6 @@ private:
     ClickTranslator& translator_;
 
     ClickCallback callback_;
+    ClickCallback rightClickCallback_;
 
 };

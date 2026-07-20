@@ -4,38 +4,36 @@
 #include <algorithm>
 #include <iostream>
 
-
 bool GameEngine::requestMove(int fromRow, int fromCol, int toRow, int toCol) {
-    if (gameOver_) return false; // אחרי סיום המשחק - כל פקודה מתעלמת
+    if (gameOver_) return false;
 
     Position from{fromRow, fromCol};
     Position to{toRow, toCol};
 
     if (arbiter_.hasActiveMotionFrom(from)) return false;
     if (arbiter_.conflictsWithActiveMotion(from, to)) return false;
-    bool valid = RuleEngine::validateMove(
-        board_,
-        fromRow,
-        fromCol,
-        toRow,
-        toCol
-    );
 
-std::cout << "Rule valid = "
-          << valid
-          << std::endl;
+    bool valid = RuleEngine::validateMove(board_, fromRow, fromCol, toRow, toCol);
+    if (!valid) return false;
 
-    if (!valid)    return false;
     auto piece = board_.getCell(fromRow, fromCol);
     if (!piece.has_value()) return false;
 
     int distance = std::max(std::abs(toRow - fromRow), std::abs(toCol - fromCol));
-    Motion motion {
+
+    const auto& moveCfg = configs_.get(piece->color(), piece->type(), PieceState::MOVE);
+    long durationMs = (moveCfg.speedMetersPerSec > 0.0)
+        ? static_cast<long>((distance / moveCfg.speedMetersPerSec) * 1000.0)
+        : distance * 100L;
+    if (durationMs < 1) durationMs = 1;   // מונע 0/0 (NaN) בהמשך
+
+    Motion motion{
     motion.from = from,
     motion.to = to,
     motion.piece = *piece,
-    motion.startTime=0,
-    motion.durationMs = distance * 100L};
+    motion.state = PieceState::MOVE,
+    motion.startTime = 0,
+    motion.durationMs = durationMs};
 
     arbiter_.startMotion(motion);
     return true;
@@ -44,32 +42,34 @@ std::cout << "Rule valid = "
 bool GameEngine::requestJump(int row, int col) {
     if (gameOver_) return false;
 
-
     Position pos{row, col};
 
-    if (arbiter_.hasActiveMotionFrom(pos)) return false; // כלל 4: כלי בתנועה לא יכול לקפוץ
-    if (arbiter_.isJumpingAt(pos)) return false;          // כלי כבר קופץ - לא כפל-קפיצה
+    if (arbiter_.hasActiveMotionFrom(pos)) return false;
+    if (arbiter_.isJumpingAt(pos)) return false;
 
     auto piece = board_.getCell(row, col);
-    if (!piece.has_value()) return false; // כלל 5: אין כלי = לא ניתן לקפוץ (כולל כלי שנתפס)
+    if (!piece.has_value()) return false;
 
-    arbiter_.startJump(pos, *piece, 100L);
+    const auto& jumpCfg = configs_.get(piece->color(), piece->type(), PieceState::JUMP);
+    long durationMs = (jumpCfg.framesPerSecond > 0 && jumpCfg.frameCount > 0)
+        ? static_cast<long>(jumpCfg.frameCount) * 1000L / jumpCfg.framesPerSecond
+        : 100L;
+    if (durationMs < 1) durationMs = 1;   // מונע 0/0 (NaN) בהמשך
+
+    arbiter_.startJump(pos, *piece, durationMs);
     return true;
 }
-void GameEngine::update(long ms)
-{
-    arbiter_.advanceTime(ms, board_);
-}
+
+void GameEngine::update(long ms) { arbiter_.advanceTime(ms, board_); }
+
 std::optional<RenderPosition>
-GameEngine::currentPositionOf(const Position& from) const
-{
+GameEngine::currentPositionOf(const Position& from) const {
     return arbiter_.currentPositionOf(from);
 }
 
+long GameEngine::currentTime() const { return arbiter_.currentTime(); }
 
-long GameEngine::currentTime() const
+std::optional<PieceState> GameEngine::currentStateOf(const Position& from) const
 {
-    return arbiter_.currentTime();
+    return arbiter_.currentStateOf(from);
 }
-
-

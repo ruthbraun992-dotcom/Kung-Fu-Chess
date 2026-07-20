@@ -4,15 +4,19 @@
 #include "position.hpp"
 #include "Piece.hpp"
 #include "RenderPosition.hpp"
+#include "AnimationConfigLoader.hpp"
+#include "PieceState.hpp"
 
 #include <vector>
+#include <optional>
 
 class RealTimeArbiter {
 public:
+    explicit RealTimeArbiter(const AnimationConfigLoader& configs) : configs_(configs) {}
+
     void startMotion(Motion m);
     void startJump(Position at, Piece piece, long durationMs);
 
-    // מחזיר את כל הכלים שנתפסו (בין אם ע"י דריסה רגילה או ע"י תפיסה באוויר)
     std::vector<Piece> advanceTime(long ms, Board& board);
 
     bool hasActiveMotionFrom(const Position& from) const;
@@ -20,8 +24,10 @@ public:
     bool isJumpingAt(const Position& pos) const;
     std::optional<RenderPosition> currentPositionOf(const Position& from) const;
     long currentTime() const;
-    
-    private:
+    std::optional<PieceState> currentStateOf(const Position& from) const;
+
+
+private:
     struct ActiveMotion {
         Motion motion;
         long arrivalAt;
@@ -32,6 +38,9 @@ public:
         long arrivalAt;
     };
 
+    void startFollowUpState(const Position& at, Piece piece, PieceState state);
+
+    const AnimationConfigLoader& configs_;
     long now_ = 0;
     std::vector<ActiveMotion> motions_;
     std::vector<ActiveJump> jumps_;

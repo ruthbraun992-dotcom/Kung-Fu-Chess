@@ -13,11 +13,11 @@ class BoardRenderer
 {
 public:
     BoardRenderer(int rows, int cols, int cellSize,
-                  const std::string& assetDir,
+                  const SpriteManager& sprites,
                   int offsetX, int offsetY, const GameEngine& engine);
 
     void setSelectedCell(const std::optional<Position>& selected);
-    void draw(const cv::Mat& boardImage,const Board& board, cv::Mat& out) const;
+    void draw(const cv::Mat& boardImage, const Board& board, cv::Mat& out) const;
 
 private:
     int rows_;
@@ -26,10 +26,9 @@ private:
     int offsetX_;
     int offsetY_;
     const GameEngine& engine_;
+    const SpriteManager& sprites_;
 
     std::optional<Position> selectedCell_;
-
-    SpriteManager spriteManager_;
 
     void drawSprite(cv::Mat& canvas, const cv::Mat& sprite, double x, double y) const;
 };

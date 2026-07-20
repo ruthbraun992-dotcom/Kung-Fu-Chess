@@ -68,9 +68,8 @@ int main()
         Img boardImage;
         boardImage.read(boardImagePath.string(), {800, 800}, false);
 
-        const std::filesystem::path spriteDir =
-            resolveAssetPath("../pieces2");
-
+const std::filesystem::path spriteDir = resolveAssetPath("../pieces3");
+std::cout << "spriteDir = " << spriteDir << " exists=" << std::filesystem::exists(spriteDir) << std::endl;
         constexpr int kBoardSize = 800;
         const int cellSize = kBoardSize / 8;
         const int offsetX = 0;
@@ -78,21 +77,15 @@ int main()
 
         const cv::Mat& img = boardImage.get_mat();
 
-        Board board(8, 8);
-        setupStartingPosition(board);
+      Board board(8, 8);
+    setupStartingPosition(board);
 
-        GameEngine engine(std::move(board));
-        Controller controller(engine);
+    AnimationConfigLoader animConfigs(spriteDir.string());
+    GameEngine engine(std::move(board), animConfigs);
+    Controller controller(engine);
 
-        BoardRenderer renderer(
-        8,
-        8,
-        cellSize,
-        spriteDir.string(),
-        offsetX,
-        offsetY,
-        engine
-        );
+    SpriteManager sprites(spriteDir.string());
+    BoardRenderer renderer(8,  8,  cellSize,   sprites, offsetX,  offsetY,engine);
 
         cv::Mat canvas;
 
@@ -117,6 +110,12 @@ int main()
             controller.click(pos);
             redraw();
         });
+        mouse.setOnRightClick([&](const Position& pos)
+        {
+                std::cout << "right click lambda: pos=" << pos.row << "," << pos.col << std::endl;
+        controller.jump(pos);
+        redraw();
+        });
 
         cv::startWindowThread();
         cv::namedWindow("Image", cv::WINDOW_AUTOSIZE);
@@ -130,16 +129,6 @@ int main()
             int key = cv::waitKey(50) & 0xFF;           
             engine.update(50);
             auto pos =engine.currentPositionOf({7,2});
-
-if(pos.has_value())
-{std::cout << pos->row
-              << ", "
-              << pos->col
-              << std::endl;
-}
-        else{
-            std::cout<<"pos dont has_value\n";
-        }
             redraw();
             
 

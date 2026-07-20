@@ -23,6 +23,6 @@ target_include_directories(chess_lib PUBLIC
     Common
     ${CMAKE_SOURCE_DIR}/ThirdParty
 )
-
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(UI)

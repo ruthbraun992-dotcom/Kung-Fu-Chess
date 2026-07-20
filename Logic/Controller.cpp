@@ -55,5 +55,7 @@ std::cout << "after request move: move from "
 }
 
 void Controller::jump(const Position& cell) {
-    engine_.requestJump(cell.row, cell.col);
+    std::cout << "Controller::jump at " << cell.row << "," << cell.col << std::endl;
+    bool ok = engine_.requestJump(cell.row, cell.col);
+    std::cout << "requestJump returned " << ok << std::endl;
 }
