@@ -5,6 +5,7 @@
 #include "Board.hpp"
 #include "RenderPosition.hpp"
 #include "PieceState.hpp"
+#include "GameStats.hpp"
 class GameEngine {
 public:
     GameEngine(Board board, const AnimationConfigLoader& configs)
@@ -20,10 +21,12 @@ public:
     std::optional<RenderPosition> currentPositionOf(const Position& from) const;
     long currentTime() const;
     std::optional<PieceState> currentStateOf(const Position& from) const;
+    const GameStats& stats() const { return stats_; }
 
 private:
     Board board_;
     const AnimationConfigLoader& configs_;
     RealTimeArbiter arbiter_;
     bool gameOver_ = false;
+    GameStats stats_;
 };

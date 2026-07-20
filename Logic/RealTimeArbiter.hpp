@@ -6,6 +6,7 @@
 #include "RenderPosition.hpp"
 #include "AnimationConfigLoader.hpp"
 #include "PieceState.hpp"
+#include "CaptureEvent.hpp"
 
 #include <vector>
 #include <optional>
@@ -17,7 +18,7 @@ public:
     void startMotion(Motion m);
     void startJump(Position at, Piece piece, long durationMs);
 
-    std::vector<Piece> advanceTime(long ms, Board& board);
+    std::vector<CaptureEvent> advanceTime(long ms, Board& board);
 
     bool hasActiveMotionFrom(const Position& from) const;
     bool conflictsWithActiveMotion(const Position& from, const Position& to) const;

@@ -73,6 +73,59 @@ boardImage.copyTo(
 
         cv::rectangle(out, cv::Rect(x + 2, y + 2, cellSize_ - 4, cellSize_ - 4), cv::Scalar(0, 255, 0), 2);
     }
+    // אותיות A-H מעל הלוח
+for (int col = 0; col < cols_; ++col)
+{
+    std::string letter(1, 'A' + col);
+
+    int x = offsetX_ + col * cellSize_ + cellSize_ / 2 - 8;
+    int y = offsetY_ - 12;
+
+    cv::putText(out,
+                letter,
+                cv::Point(x, y),
+                cv::FONT_HERSHEY_SIMPLEX,
+                0.6,
+                cv::Scalar(0, 0, 0),
+                2);
+}
+
+// מספרים 8-1 משמאל ללוח
+for (int row = 0; row < rows_; ++row)
+{
+    std::string number = std::to_string(rows_ - row);
+
+    int x = offsetX_ - 22;
+    int y = offsetY_ + row * cellSize_ + cellSize_ / 2 + 8;
+
+    cv::putText(out,
+                number,
+                cv::Point(x, y),
+                cv::FONT_HERSHEY_SIMPLEX,
+                0.6,
+                cv::Scalar(0, 0, 0),
+                2);
+}
+int whiteScore = engine_.stats().score(Piece::Color::WHITE);
+int blackScore = engine_.stats().score(Piece::Color::BLACK);
+
+cv::putText(
+    out,
+    "White: " + std::to_string(whiteScore),
+    cv::Point(10, 30),
+    cv::FONT_HERSHEY_SIMPLEX,
+    0.7,
+    cv::Scalar(0,0,0),
+    2);
+
+cv::putText(
+    out,
+    "Black: " + std::to_string(blackScore),
+    cv::Point(10, 60),
+    cv::FONT_HERSHEY_SIMPLEX,
+    0.7,
+    cv::Scalar(0,0,0),
+    2);
 }
 
 void BoardRenderer::drawSprite(cv::Mat& canvas, const cv::Mat& sprite, double x, double y) const

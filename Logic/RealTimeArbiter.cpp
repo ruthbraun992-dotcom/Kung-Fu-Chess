@@ -1,4 +1,5 @@
 #include "RealTimeArbiter.hpp"
+#include "CaptureEvent.hpp"
 #include <iostream>
 
 void RealTimeArbiter::startMotion(Motion m) {
@@ -33,9 +34,9 @@ void RealTimeArbiter::startFollowUpState(const Position& at, Piece piece, PieceS
     startMotion(m);
 }
 
-std::vector<Piece> RealTimeArbiter::advanceTime(long ms, Board& board) {
+std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
     now_ += ms;
-    std::vector<Piece> captured;
+    std::vector<CaptureEvent> captured;
 
     // נאסוף כאן מעברי מצב שצריך להתחיל - נריץ אותם רק אחרי שסיימנו
     // לעבור על motions_, כדי לא לשנות את הוקטור בזמן איטרציה עליו
@@ -55,8 +56,11 @@ std::vector<Piece> RealTimeArbiter::advanceTime(long ms, Board& board) {
                 for (const auto& jump : jumps_) {
                     if (jump.at.row == to.row && jump.at.col == to.col &&
                         jump.piece.color() != it->motion.piece.color()) {
-                        captured.push_back(it->motion.piece);
-                        caughtByJumper = true;
+                            captured.push_back({
+    it->motion.piece,
+    jump.piece,
+    to
+});caughtByJumper = true;
                         break;
                     }
                 }
@@ -68,9 +72,16 @@ std::vector<Piece> RealTimeArbiter::advanceTime(long ms, Board& board) {
                     continue;
                 }
 
-                auto existing = board.getCell(to.row, to.col);
-                if (existing.has_value()) captured.push_back(*existing);
+               auto existing = board.getCell(to.row, to.col);
 
+                if (existing.has_value())
+                {
+                    captured.push_back({
+                        *existing,
+                        landedPiece,
+                        to
+                    });
+                }
                 int lastRow = (landedPiece.color() == Piece::Color::WHITE) ? 0 : board.rows() - 1;
                 if (landedPiece.type() == Piece::Type::PAWN && to.row == lastRow) {
                     landedPiece = Piece(landedPiece.color(), Piece::Type::QUEEN);

@@ -36,6 +36,7 @@ bool GameEngine::requestMove(int fromRow, int fromCol, int toRow, int toCol) {
     motion.durationMs = durationMs};
 
     arbiter_.startMotion(motion);
+    stats_.recordMove(piece->color(), piece->type(), from, to, /*isJump=*/false);
     return true;
 }
 
@@ -57,6 +58,7 @@ bool GameEngine::requestJump(int row, int col) {
     if (durationMs < 1) durationMs = 1;   // מונע 0/0 (NaN) בהמשך
 
     arbiter_.startJump(pos, *piece, durationMs);
+    stats_.recordMove(piece->color(), piece->type(), pos, pos, /*isJump=*/true);
     return true;
 }
 
@@ -64,17 +66,16 @@ void GameEngine::update(long ms)
 {
     auto captured = arbiter_.advanceTime(ms, board_);
 
-    for (const auto& piece : captured)
+    for (const auto& c : captured)
     {
-        if (piece.type() == Piece::Type::KING)
+        stats_.recordCapture(c);
+        if (c.capturedPiece.type() == Piece::Type::KING)
         {
             gameOver_ = true;
-            break;
         }
     }
 }
-std::optional<RenderPosition>
-GameEngine::currentPositionOf(const Position& from) const {
+std::optional<RenderPosition> GameEngine::currentPositionOf(const Position& from) const {
     return arbiter_.currentPositionOf(from);
 }
 
