@@ -16,8 +16,14 @@ void BoardRenderer::setSelectedCell(const std::optional<Position>& selected)
 void BoardRenderer::draw(const cv::Mat& boardImage, const Board& board, cv::Mat& out) const
 {
     if (boardImage.empty()) return;
-    out = boardImage.clone();
+out = cv::Mat(800, 800, CV_8UC3, cv::Scalar(255, 255, 255));
 
+boardImage.copyTo(
+    out(cv::Rect(
+        offsetX_,
+        offsetY_,
+        boardImage.cols,
+        boardImage.rows)));
     for (int row = 0; row < rows_; row++)
     {
         for (int col = 0; col < cols_; col++)

@@ -70,14 +70,13 @@ int main()
         const auto gameOverPath = resolveAssetPath("../GameOver.png");
 
         gameOverImage.read(gameOverPath.string(), {800, 800}, false);
-        boardImage.read(boardImagePath.string(), {800, 800}, false);
-
-const std::filesystem::path spriteDir = resolveAssetPath("../pieces3");
-std::cout << "spriteDir = " << spriteDir << " exists=" << std::filesystem::exists(spriteDir) << std::endl;
+        boardImage.read(boardImagePath.string(), {650, 650}, false);
+        const std::filesystem::path spriteDir = resolveAssetPath("../pieces3");
+        std::cout << "spriteDir = " << spriteDir << " exists=" << std::filesystem::exists(spriteDir) << std::endl;
         constexpr int kBoardSize = 800;
-        const int cellSize = kBoardSize / 8;
-        const int offsetX = 0;
-        const int offsetY = 0;
+        const int cellSize = 650/8;//kBoardSize / 8;
+        const int offsetX = 75;
+        const int offsetY = 75;
 
         const cv::Mat& img = boardImage.get_mat();
 
