@@ -41,7 +41,7 @@ void AnimationConfigLoader::loadAll()
     static const std::vector<PieceState> states =
     {
         PieceState::IDLE, PieceState::MOVE, PieceState::JUMP,
-        PieceState::ATTACK, PieceState::SHORT_REST, PieceState::LONG_REST
+        PieceState::SHORT_REST, PieceState::LONG_REST
     };
 
     for (int c = 0; c < 2; ++c)

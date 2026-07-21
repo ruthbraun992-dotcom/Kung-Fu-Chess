@@ -37,13 +37,9 @@ void RealTimeArbiter::startFollowUpState(const Position& at, Piece piece, PieceS
 std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
     now_ += ms;
     std::vector<CaptureEvent> captured;
-
-    // נאסוף כאן מעברי מצב שצריך להתחיל - נריץ אותם רק אחרי שסיימנו
-    // לעבור על motions_, כדי לא לשנות את הוקטור בזמן איטרציה עליו
-    struct PendingFollowUp { Position at; Piece piece; PieceState state; };
+  struct PendingFollowUp { Position at; Piece piece; PieceState state; };
     std::vector<PendingFollowUp> pending;
-
-    for (auto it = motions_.begin(); it != motions_.end(); ) {
+     for (auto it = motions_.begin(); it != motions_.end(); ) {
         if (now_ >= it->arrivalAt) {
             Position from = it->motion.from;
             Position to   = it->motion.to;
@@ -189,5 +185,14 @@ std::optional<PieceState> RealTimeArbiter::currentStateOf(const Position& from) 
             return PieceState::JUMP;
     }
 
+    return std::nullopt;
+}
+std::optional<long> RealTimeArbiter::stateStartTimeOf(const Position& from) const
+{
+    for (const auto& active : motions_)
+    {
+        if (active.motion.from.row == from.row && active.motion.from.col == from.col)
+            return active.motion.startTime;
+    }
     return std::nullopt;
 }

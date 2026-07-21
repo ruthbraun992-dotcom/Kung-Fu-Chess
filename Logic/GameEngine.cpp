@@ -85,3 +85,8 @@ std::optional<PieceState> GameEngine::currentStateOf(const Position& from) const
 {
     return arbiter_.currentStateOf(from);
 }
+
+std::optional<long> GameEngine::stateStartTimeOf(const Position& from) const
+{
+    return arbiter_.stateStartTimeOf(from);
+}

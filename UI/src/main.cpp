@@ -62,8 +62,8 @@ int main()
 {
     try
     {
-        const std::filesystem::path boardImagePath =
-            "C:\\Users\\This User\\Downloads\\board_classic.png";
+        const std::filesystem::path boardImagePath ="C:\\Users\\This User\\Desktop\\Kung-Fu Chess\\UI\\pieces6\\board.png";
+           // "C:\\Users\\This User\\Downloads\\board_classic.png";
 
         Img boardImage;
         Img gameOverImage;
@@ -71,12 +71,12 @@ int main()
 
         gameOverImage.read(gameOverPath.string(), {800, 800}, false);
         boardImage.read(boardImagePath.string(), {650, 650}, false);
-        const std::filesystem::path spriteDir = resolveAssetPath("../pieces1");
+        const std::filesystem::path spriteDir = resolveAssetPath("../pieces6");
         std::cout << "spriteDir = " << spriteDir << " exists=" << std::filesystem::exists(spriteDir) << std::endl;
-        constexpr int kBoardSize = 800;
-        const int cellSize = 650/8;//kBoardSize / 8;
-        const int offsetX = 75;
-        const int offsetY = 75;
+        constexpr int kBoardSize = 960;
+        const int cellSize = 63;//kBoardSize / 8;
+        const int offsetX = 90;
+        const int offsetY = 90;
 
         const cv::Mat& img = boardImage.get_mat();
 

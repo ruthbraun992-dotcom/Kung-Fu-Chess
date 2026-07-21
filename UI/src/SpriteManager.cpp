@@ -46,7 +46,7 @@ void SpriteManager::loadAll()
 {
     static const std::vector<std::string> states =
     {
-        "idle", "move", "jump", "attack", "short_rest", "long_rest"
+        "idle", "move", "jump", "short_rest", "long_rest"
     };
 
     for (int c = 0; c < 2; ++c)
@@ -65,9 +65,12 @@ void SpriteManager::loadAll()
                     state /
                     "sprites";
 
-                if (!std::filesystem::exists(folder))
-                    continue;
 
+                if (!std::filesystem::exists(folder))
+                {
+                    std::cout << "NOT FOUND\n";
+                    continue;
+                }
                 std::vector<std::filesystem::path> framePaths;
                 for (const auto& f : std::filesystem::directory_iterator(folder))
                     if (f.is_regular_file()) framePaths.push_back(f.path());

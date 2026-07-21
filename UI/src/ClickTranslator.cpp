@@ -1,11 +1,15 @@
 #include "ClickTranslator.hpp"
 #include <iostream>
 #include "Position.hpp"
+#include "BoardConstants.hpp"
 
 std::optional<Position> ClickTranslator::pixelToCell(int x, int y) const
 {
-    const int localX = x - offsetX_;
-    const int localY = y - offsetY_;
+    const int boardMarginX = 114;
+    const int boardMarginY = 114;
+
+    const int localX = x - offsetX_ - BOARD_MARGIN_X;
+    const int localY = y - offsetY_ - BOARD_MARGIN_Y;
 
     if (localX < 0 || localY < 0)
         return std::nullopt;
@@ -18,9 +22,6 @@ std::optional<Position> ClickTranslator::pixelToCell(int x, int y) const
 
     const int col = localX / cellSize_;
     const int row = localY / cellSize_;
-
-    if (row >= rows_ || col >= cols_)
-        return std::nullopt;
 
     return Position{row, col};
 }
