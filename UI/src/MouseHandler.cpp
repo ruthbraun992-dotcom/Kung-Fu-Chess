@@ -21,21 +21,22 @@ void MouseHandler::setOnRightClick(ClickCallback callback)
     rightClickCallback_ = callback;
 }
 
-void MouseHandler::mouseCallback( int event,  int x,    int y,  int flags, void* userdata)
+void MouseHandler::mouseCallback(int event, int x, int y, int flags, void* userdata)
 {
-      std::cout << "mouseCallback event=" << event << std::endl;
     if (event != cv::EVENT_LBUTTONDOWN && event != cv::EVENT_RBUTTONDOWN)
         return;
 
-    auto* handler =
-        static_cast<MouseHandler*>(userdata);
+    auto* handler = static_cast<MouseHandler*>(userdata);
 
-    auto position =
-        handler->translator_.pixelToCell(x, y);
+    auto position = handler->translator_.pixelToCell(x, y);
 
     // לחיצה מחוץ ללוח
     if (!position.has_value())
+    {
+        if (event == cv::EVENT_LBUTTONDOWN && handler->outsideClickCallback_)
+            handler->outsideClickCallback_();
         return;
+    }
 
     if (event == cv::EVENT_LBUTTONDOWN)
     {
@@ -47,4 +48,9 @@ void MouseHandler::mouseCallback( int event,  int x,    int y,  int flags, void*
         if (handler->rightClickCallback_)
             handler->rightClickCallback_(position.value());
     }
+}
+
+void MouseHandler::setOnOutsideClick(VoidCallback callback)
+{
+    outsideClickCallback_ = std::move(callback);
 }

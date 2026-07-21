@@ -62,8 +62,8 @@ int main()
 {
     try
     {
-        const std::filesystem::path boardImagePath ="C:\\Users\\This User\\Desktop\\Kung-Fu Chess\\UI\\pieces6\\board.png";
-           // "C:\\Users\\This User\\Downloads\\board_classic.png";
+        const std::filesystem::path boardImagePath = "C:\\Users\\This User\\Desktop\\Kung-Fu Chess\\UI\\pieces6\\board.png";
+         //  "C:\\Users\\This User\\Downloads\\board.png";//
 
         Img boardImage;
         Img gameOverImage;
@@ -126,6 +126,11 @@ int main()
                 std::cout << "right click lambda: pos=" << pos.row << "," << pos.col << std::endl;
         controller.jump(pos);
         redraw();
+        });
+        mouse.setOnOutsideClick([&]()
+        {
+            controller.clickOutside();
+            redraw();
         });
 
         cv::startWindowThread();

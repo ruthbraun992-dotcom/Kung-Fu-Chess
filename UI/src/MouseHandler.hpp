@@ -13,7 +13,9 @@ public:
     using ClickCallback =
         std::function<void(const Position&)>;
 
-
+    using VoidCallback =
+        std::function<void()>; 
+   
     explicit MouseHandler(ClickTranslator& translator)
         : translator_(translator) {}
 
@@ -23,7 +25,7 @@ public:
 
     void setOnClick(ClickCallback callback);
     void setOnRightClick(ClickCallback callback);
-
+    void setOnOutsideClick(VoidCallback callback); 
 
 private:
 
@@ -40,5 +42,6 @@ private:
 
     ClickCallback callback_;
     ClickCallback rightClickCallback_;
+     VoidCallback outsideClickCallback_;
 
 };

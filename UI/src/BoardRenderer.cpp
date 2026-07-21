@@ -2,6 +2,8 @@
 #include "PieceState.hpp"
 #include "BoardConstants.hpp"
 #include <iostream>
+#include <algorithm>
+
 BoardRenderer::BoardRenderer(int rows, int cols, int cellSize,
                               const SpriteManager& sprites,
                               int offsetX, int offsetY, const GameEngine& engine)
@@ -63,6 +65,32 @@ boardImage.copyTo(
                << " renderPos.has_value=" << renderPos.has_value()
                << " pixelX=" << pixelX << " pixelY=" << pixelY
                << std::endl;
+
+            }
+            if (renderState == PieceState::SHORT_REST || renderState == PieceState::LONG_REST)
+{
+    long duration = engine_.stateDurationOf({row, col}).value_or(0);
+    if (duration > 0)
+    {
+        long stateStart = engine_.stateStartTimeOf({row, col}).value_or(0);
+        long elapsed = engine_.currentTime() - stateStart;
+        double progress = std::clamp(double(elapsed) / duration, 0.0, 1.0);
+        double remaining = 1.0 - progress;   // 1 = התחלה, 0 = הסתיים
+
+        if (remaining > 0.0)
+        {
+            int fillHeight = static_cast<int>(cellSize_ * remaining);
+
+            cv::Mat roiBg = out(cv::Rect((int)pixelX, (int)pixelY, cellSize_, cellSize_));
+
+            // מלבן אטום, ממורכז אנכית מלמעלה למטה, שגובהו יורד עם הזמן
+            cv::rectangle(roiBg,
+                          cv::Point(0, cellSize_ - fillHeight),
+                          cv::Point(cellSize_, cellSize_),
+                          cv::Scalar(43, 120, 117),
+                          cv::FILLED);
+        }
+    }
 }
             drawSprite(out, sprite, pixelX, pixelY);
         }
@@ -139,7 +167,6 @@ void BoardRenderer::drawSprite(cv::Mat& canvas, const cv::Mat& sprite, double x,
     int ix = (int)x;
     int iy = (int)y;
 
-    // הגנה: אם החישוב יצא מחוץ לתמונה (באג במקום אחר), נדלג במקום לקרוס
     if (ix < 0 || iy < 0 || ix + cellSize_ > canvas.cols || iy + cellSize_ > canvas.rows)
     {
         std::cout << "OUT OF BOUNDS drawSprite: x=" << x << " y=" << y
@@ -149,10 +176,23 @@ void BoardRenderer::drawSprite(cv::Mat& canvas, const cv::Mat& sprite, double x,
         return;
     }
 
+    // שמירה על יחס גובה-רוחב: קנה מידה יחיד לשני הצירים
+    double scale = std::min(
+        static_cast<double>(cellSize_) / sprite.cols,
+        static_cast<double>(cellSize_) / sprite.rows);
+
+    int newW = std::max(1, static_cast<int>(sprite.cols * scale));
+    int newH = std::max(1, static_cast<int>(sprite.rows * scale));
+
     cv::Mat resized;
-    cv::resize(sprite, resized, cv::Size(cellSize_, cellSize_));
+    cv::resize(sprite, resized, cv::Size(newW, newH));
+
+    // מרכזים בתוך תא הריבוע - היתרה נשארת שקופה
+    int offsetX = (cellSize_ - newW) / 2;
+    int offsetY = (cellSize_ - newH) / 2;
 
     cv::Mat roi = canvas(cv::Rect(ix, iy, cellSize_, cellSize_));
+
     if (resized.channels() == 4)
     {
         for (int r = 0; r < resized.rows; r++)
@@ -164,13 +204,17 @@ void BoardRenderer::drawSprite(cv::Mat& canvas, const cv::Mat& sprite, double x,
 
                 if (alpha == 0) continue;
 
+                int rr = r + offsetY;
+                int cc = c + offsetX;
+                if (rr < 0 || rr >= roi.rows || cc < 0 || cc >= roi.cols) continue;
+
                 if (alpha == 255)
                 {
-                    roi.at<cv::Vec3b>(r, c) = {pixel[0], pixel[1], pixel[2]};
+                    roi.at<cv::Vec3b>(rr, cc) = {pixel[0], pixel[1], pixel[2]};
                 }
                 else
                 {
-                    cv::Vec3b& dst = roi.at<cv::Vec3b>(r, c);
+                    cv::Vec3b& dst = roi.at<cv::Vec3b>(rr, cc);
                     for (int k = 0; k < 3; k++)
                         dst[k] = (pixel[k] * alpha + dst[k] * (255 - alpha)) / 255;
                 }
@@ -179,6 +223,7 @@ void BoardRenderer::drawSprite(cv::Mat& canvas, const cv::Mat& sprite, double x,
     }
     else
     {
-        resized.copyTo(roi);
+        cv::Mat sub = roi(cv::Rect(offsetX, offsetY, newW, newH));
+        resized.copyTo(sub);
     }
 }

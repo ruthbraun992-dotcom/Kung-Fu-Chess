@@ -90,3 +90,8 @@ std::optional<long> GameEngine::stateStartTimeOf(const Position& from) const
 {
     return arbiter_.stateStartTimeOf(from);
 }
+
+std::optional<long> GameEngine::stateDurationOf(const Position& from) const
+{
+    return arbiter_.stateDurationOf(from);
+}
