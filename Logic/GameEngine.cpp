@@ -35,9 +35,9 @@ bool GameEngine::requestMove(int fromRow, int fromCol, int toRow, int toCol) {
     motion.startTime = 0,
     motion.durationMs = durationMs};
 
-    arbiter_.startMotion(motion);
-    stats_.recordMove(piece->color(), piece->type(), from, to, /*isJump=*/false);
-    return true;
+arbiter_.startMotion(motion);
+stats_.recordMove(piece->color(), piece->type(), from, to, /*isJump=*/false, arbiter_.currentTime());
+return true;
 }
 
 bool GameEngine::requestJump(int row, int col) {
@@ -57,9 +57,10 @@ bool GameEngine::requestJump(int row, int col) {
         : 100L;
     if (durationMs < 1) durationMs = 1;   // מונע 0/0 (NaN) בהמשך
 
-    arbiter_.startJump(pos, *piece, durationMs);
-    stats_.recordMove(piece->color(), piece->type(), pos, pos, /*isJump=*/true);
-    return true;
+    // בתוך requestJump, בסוף:
+arbiter_.startJump(pos, *piece, durationMs);
+stats_.recordMove(piece->color(), piece->type(), pos, pos, /*isJump=*/true, arbiter_.currentTime());
+return true;
 }
 
 void GameEngine::update(long ms)

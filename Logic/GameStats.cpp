@@ -5,9 +5,10 @@ void GameStats::recordMove(Piece::Color color,
                            Piece::Type type,
                            Position from,
                            Position to,
-                           bool isJump)
+                           bool isJump,
+                           long timestampMs)
 {
-    moves_.push_back({color, type, from, to, isJump});
+    moves_.push_back({color, type, from, to, isJump, timestampMs});
 }
 
 void GameStats::recordCapture(const CaptureEvent& event)

@@ -39,7 +39,15 @@ target_link_libraries(kungfu_chess PRIVATE
     $<$<CONFIG:Release>:${OPENCV_LIB_DIR}/opencv_world451.lib>
 )
 
-
+file(GLOB UI_SRC CONFIGURE_DEPENDS
+    src/*.cpp
+)
 target_include_directories(kungfu_chess PRIVATE
     ${CMAKE_SOURCE_DIR}/Logic
+)
+add_custom_command(TARGET kungfu_chess POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<$<CONFIG:Debug>:${OPENCV_LIB_DIR}/opencv_world451d.dll>
+        $<$<CONFIG:Release>:${OPENCV_LIB_DIR}/opencv_world451.dll>
+        $<TARGET_FILE_DIR:kungfu_chess>
 )

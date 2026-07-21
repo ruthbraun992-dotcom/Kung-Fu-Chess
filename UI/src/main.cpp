@@ -8,7 +8,7 @@
 #include "position.hpp"
 #include "GameEngine.hpp"
 #include "Controller.hpp"
-
+#include "MovesLogRenderer.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -89,6 +89,7 @@ int main()
 
     SpriteManager sprites(spriteDir.string());
     BoardRenderer renderer(8,  8,  cellSize,   sprites, offsetX,  offsetY,engine);
+    MovesLogRenderer logRenderer(500, 800, 8, 8);
 
         cv::Mat canvas;
 
@@ -114,6 +115,8 @@ int main()
     }
 
     cv::imshow("Image", canvas);
+    cv::Mat logCanvas = logRenderer.render(engine.stats());
+    cv::imshow("Moves Log", logCanvas);
     };
 
         mouse.setOnClick([&](const Position& pos)
@@ -136,6 +139,7 @@ int main()
         cv::startWindowThread();
         cv::namedWindow("Image", cv::WINDOW_AUTOSIZE);
         cv::namedWindow("Image", cv::WINDOW_NORMAL);
+        cv::namedWindow("Moves Log", cv::WINDOW_AUTOSIZE);
         redraw();
 
         mouse.attachTo("Image");

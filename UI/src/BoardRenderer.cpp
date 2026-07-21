@@ -227,3 +227,4 @@ void BoardRenderer::drawSprite(cv::Mat& canvas, const cv::Mat& sprite, double x,
         resized.copyTo(sub);
     }
 }
+
