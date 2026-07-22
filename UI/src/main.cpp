@@ -62,21 +62,21 @@ int main()
 {
     try
     {
-        const std::filesystem::path boardImagePath = "C:\\Users\\This User\\Desktop\\Kung-Fu Chess\\UI\\pieces6\\board.png";
+        const std::filesystem::path boardImagePath ="C:\\Users\\This User\\Desktop\\Kung-Fu Chess\\UI\\pieces6\\board.png";
          //  "C:\\Users\\This User\\Downloads\\board.png";//
 
         Img boardImage;
         Img gameOverImage;
+        
         const auto gameOverPath = resolveAssetPath("../GameOver.png");
-
         gameOverImage.read(gameOverPath.string(), {800, 800}, false);
         boardImage.read(boardImagePath.string(), {650, 650}, false);
         const std::filesystem::path spriteDir = resolveAssetPath("../pieces6");
         std::cout << "spriteDir = " << spriteDir << " exists=" << std::filesystem::exists(spriteDir) << std::endl;
         constexpr int kBoardSize = 960;
         const int cellSize = 63;//kBoardSize / 8;
-        const int offsetX = 90;
-        const int offsetY = 90;
+        const int offsetX =90;
+        const int offsetY =90;
 
         const cv::Mat& img = boardImage.get_mat();
 
@@ -89,20 +89,22 @@ int main()
 
     SpriteManager sprites(spriteDir.string());
     BoardRenderer renderer(8,  8,  cellSize,   sprites, offsetX,  offsetY,engine);
-    MovesLogRenderer logRenderer(500, 800, 8, 8);
+    MovesLogRenderer logRenderer(250, 800, 8, 8);
 
         cv::Mat canvas;
 
-        ClickTranslator translator(
-            8,
-            8,
-            cellSize,
-            offsetX,
-            offsetY);
+        const int logColWidth = 250;
+
+ClickTranslator translator(
+    8,
+    8,
+    cellSize,
+    offsetX + logColWidth, 
+    offsetY);
 
         MouseHandler mouse(translator);
 
-        auto redraw = [&]()
+  auto redraw = [&]()
 {
     if (controller.isGameOver())
     {
@@ -114,12 +116,33 @@ int main()
         renderer.draw(img, engine.board(), canvas);
     }
 
-    cv::imshow("Image", canvas);
-    cv::Mat logCanvas = logRenderer.render(engine.stats());
-    cv::imshow("Moves Log", logCanvas);
-    };
+    cv::Mat blackPart = logRenderer.renderColumn(engine.stats(), Piece::Color::BLACK);
+    cv::Mat whitePart = logRenderer.renderColumn(engine.stats(), Piece::Color::WHITE);
 
-        mouse.setOnClick([&](const Position& pos)
+    auto matchHeight = [&](cv::Mat& m) {
+        if (m.rows != canvas.rows)
+            cv::resize(m, m, cv::Size(m.cols, canvas.rows));
+    };
+    matchHeight(blackPart);
+    matchHeight(whitePart);
+
+    auto to4ch = [&](cv::Mat& m) {
+        if (canvas.channels() == 4 && m.channels() == 3)
+        {
+            cv::Mat converted;
+            cv::cvtColor(m, converted, cv::COLOR_BGR2BGRA);
+            m = converted;
+        }
+    };
+    to4ch(blackPart);
+    to4ch(whitePart);
+
+    cv::Mat combined;
+    cv::hconcat(blackPart, canvas, combined);
+    cv::hconcat(combined, whitePart, combined);
+
+    cv::imshow("Image", combined);
+};mouse.setOnClick([&](const Position& pos)
         {
             controller.click(pos);
             redraw();
@@ -139,7 +162,6 @@ int main()
         cv::startWindowThread();
         cv::namedWindow("Image", cv::WINDOW_AUTOSIZE);
         cv::namedWindow("Image", cv::WINDOW_NORMAL);
-        cv::namedWindow("Moves Log", cv::WINDOW_AUTOSIZE);
         redraw();
 
         mouse.attachTo("Image");

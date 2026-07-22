@@ -138,26 +138,7 @@ for (int row = 0; row < rows_; ++row)
                 cv::Scalar(0, 0, 0),
                 2);
 }
-int whiteScore = engine_.stats().score(Piece::Color::WHITE);
-int blackScore = engine_.stats().score(Piece::Color::BLACK);
 
-cv::putText(
-    out,
-    "White: " + std::to_string(whiteScore),
-    cv::Point(10, 30),
-    cv::FONT_HERSHEY_SIMPLEX,
-    0.7,
-    cv::Scalar(0,0,0),
-    2);
-
-cv::putText(
-    out,
-    "Black: " + std::to_string(blackScore),
-    cv::Point(10, 60),
-    cv::FONT_HERSHEY_SIMPLEX,
-    0.7,
-    cv::Scalar(0,0,0),
-    2);
 }
 
 void BoardRenderer::drawSprite(cv::Mat& canvas, const cv::Mat& sprite, double x, double y) const

@@ -40,46 +40,35 @@ std::string MovesLogRenderer::pieceCode(Piece::Color color, Piece::Type type) co
     return colorCode + code;
 }
 
-cv::Mat MovesLogRenderer::render(const GameStats& stats) const
+
+cv::Mat MovesLogRenderer::renderColumn(const GameStats& stats, Piece::Color color) const
 {
     cv::Mat canvas(height_, width_, CV_8UC3, cv::Scalar(255, 255, 255));
 
-    int colWidth = width_ / 2;
-
-    cv::putText(canvas, "White", cv::Point(20, 25),
-                cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 0), 2);
-    cv::putText(canvas, "Black", cv::Point(colWidth + 20, 25),
+    std::string title = (color == Piece::Color::WHITE) ? "White" : "Black";
+    cv::putText(canvas, title, cv::Point(15, 25),
                 cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 0), 2);
 
-    cv::line(canvas, cv::Point(colWidth, 0), cv::Point(colWidth, height_), cv::Scalar(200, 200, 200), 1);
+    std::string scoreStr = "Score: " + std::to_string(stats.score(color));
+    cv::putText(canvas, scoreStr, cv::Point(15, headerHeight_ + 5),
+                cv::FONT_HERSHEY_SIMPLEX, 0.55, cv::Scalar(0, 100, 0), 2);
 
-    int yWhite = headerHeight_;
-    int yBlack = headerHeight_;
+    int y = headerHeight_ + scoreHeight_;
 
     for (const auto& mv : stats.moves())
     {
+        if (mv.color != color) continue;
+
         std::string line = formatTime(mv.timestampMs) + "  " +
                             pieceCode(mv.color, mv.pieceType) + "  " +
                             squareNotation(mv.from) + "->" + squareNotation(mv.to) +
                             (mv.isJump ? " (jump)" : "");
 
-        if (mv.color == Piece::Color::WHITE)
+        if (y + rowHeight_ < height_)
         {
-            if (yWhite + rowHeight_ < height_)
-            {
-                cv::putText(canvas, line, cv::Point(15, yWhite),
-                            cv::FONT_HERSHEY_SIMPLEX, 0.45, cv::Scalar(0, 0, 0), 1);
-                yWhite += rowHeight_;
-            }
-        }
-        else
-        {
-            if (yBlack + rowHeight_ < height_)
-            {
-                cv::putText(canvas, line, cv::Point(colWidth + 15, yBlack),
-                            cv::FONT_HERSHEY_SIMPLEX, 0.45, cv::Scalar(0, 0, 0), 1);
-                yBlack += rowHeight_;
-            }
+            cv::putText(canvas, line, cv::Point(10, y),
+                        cv::FONT_HERSHEY_SIMPLEX, 0.45, cv::Scalar(0, 0, 0), 1);
+            y += rowHeight_;
         }
     }
 
