@@ -6,7 +6,7 @@
 #include <vector>
 #include "Piece.hpp"
 #include "PieceState.hpp"
-#include "AnimationConfigLoader.hpp"
+#include "animation/AnimationConfigLoader.hpp"
 
 class SpriteManager
 {

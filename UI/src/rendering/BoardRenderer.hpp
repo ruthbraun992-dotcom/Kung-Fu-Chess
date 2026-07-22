@@ -3,10 +3,10 @@
 #include <opencv2/opencv.hpp>
 #include <optional>
 #include <string>
-#include "SpriteManager.hpp"
-#include "Board.hpp"
+#include "sprites/SpriteManager.hpp"
+#include "model/Board.hpp"
 #include "position.hpp"
-#include "GameEngine.hpp"
+#include "engine/GameEngine.hpp"
 #include "RenderPosition.hpp"
 
 class BoardRenderer

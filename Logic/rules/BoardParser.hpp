@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include "Board.hpp"
+#include "model/Board.hpp"
 
 
 

@@ -1,11 +1,12 @@
 #pragma once
-#include "RealTimeArbiter.hpp"
-#include "AnimationConfigLoader.hpp"
+
+#include "realtime/RealTimeArbiter.hpp"
+#include "animation/AnimationConfigLoader.hpp"
 #include <ostream>
-#include "Board.hpp"
+#include "model/Board.hpp"
 #include "RenderPosition.hpp"
 #include "PieceState.hpp"
-#include "GameStats.hpp"
+#include "stats/GameStats.hpp"
 class GameEngine {
 public:
     GameEngine(Board board, const AnimationConfigLoader& configs)

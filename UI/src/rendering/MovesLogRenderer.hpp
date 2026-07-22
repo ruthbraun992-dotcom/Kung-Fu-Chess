@@ -1,7 +1,7 @@
 #pragma once
 
 #include <opencv2/opencv.hpp>
-#include "GameStats.hpp"
+#include "stats/GameStats.hpp"
 
 class MovesLogRenderer
 {

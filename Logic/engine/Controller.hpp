@@ -1,6 +1,6 @@
 #pragma once
 #include "GameEngine.hpp"
-#include "BoardMapper.hpp"
+#include "rules/BoardMapper.hpp"
 #include <optional>
 
 class Controller {

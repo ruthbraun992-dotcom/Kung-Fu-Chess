@@ -1,10 +1,10 @@
 #pragma once
 #include "Motion.hpp"
-#include "Board.hpp"
+#include "model/Board.hpp"
 #include "position.hpp"
 #include "Piece.hpp"
 #include "RenderPosition.hpp"
-#include "AnimationConfigLoader.hpp"
+#include "animation/AnimationConfigLoader.hpp"
 #include "PieceState.hpp"
 #include "CaptureEvent.hpp"
 

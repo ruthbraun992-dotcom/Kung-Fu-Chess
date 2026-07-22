@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Board.hpp"
+#include "model/Board.hpp"
 #include "Piece.hpp"
 
 inline void setupStartingPosition(Board& board)

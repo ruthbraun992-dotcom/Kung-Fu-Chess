@@ -1,7 +1,8 @@
 #include "ClickTranslator.hpp"
 #include <iostream>
 #include "Position.hpp"
-#include "BoardConstants.hpp"
+#include "rendering/BoardConstants.hpp"
+
 
 std::optional<Position> ClickTranslator::pixelToCell(int x, int y) const
 {

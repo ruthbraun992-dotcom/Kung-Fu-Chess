@@ -1,7 +1,7 @@
 
 // BoardMapper.hpp
 #pragma once
-#include "Board.hpp"
+#include "model/Board.hpp"
 #include "position.hpp"
 #include <optional>
 

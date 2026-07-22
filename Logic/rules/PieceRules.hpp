@@ -1,6 +1,6 @@
 #pragma once
 #include "Piece.hpp"
-#include "Board.hpp"
+#include "model/Board.hpp"
 
 #include <vector>
 #include <utility>

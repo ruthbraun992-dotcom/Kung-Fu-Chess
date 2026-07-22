@@ -1,5 +1,5 @@
 #include "GameEngine.hpp"
-#include "RuleEngine.hpp"
+#include "rules/RuleEngine.hpp"
 #include <cmath>
 #include <algorithm>
 #include <iostream>

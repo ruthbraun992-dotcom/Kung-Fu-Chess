@@ -4,7 +4,7 @@
 #include <functional>
 #include "ClickTranslator.hpp"
 #include "Position.hpp"
-#include "Board.hpp"
+#include "model/Board.hpp"
 
 
 class MouseHandler {
