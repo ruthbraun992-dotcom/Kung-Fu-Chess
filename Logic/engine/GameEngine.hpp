@@ -23,7 +23,7 @@ public:
     long currentTime() const;
     std::optional<PieceState> currentStateOf(const Position& from) const;
     const GameStats& stats() const { return stats_; }
-    std::optional<long> stateStartTimeOf(const Position& from) const;   // חדש
+    std::optional<long> stateStartTimeOf(const Position& from) const; 
     std::optional<long> stateDurationOf(const Position& from) const;
 
 private:

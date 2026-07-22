@@ -10,38 +10,25 @@
 class MouseHandler {
 public:
 
-    using ClickCallback =
-        std::function<void(const Position&)>;
+    using ClickCallback = std::function<void(const Position&)>;
 
-    using VoidCallback =
-        std::function<void()>; 
+    using VoidCallback = std::function<void()>; 
    
     explicit MouseHandler(ClickTranslator& translator)
         : translator_(translator) {}
 
-
     void attachTo(const std::string& windowName);
-
-
     void setOnClick(ClickCallback callback);
     void setOnRightClick(ClickCallback callback);
     void setOnOutsideClick(VoidCallback callback); 
 
 private:
 
-    static void mouseCallback(
-        int event,
-        int x,
-        int y,
-        int flags,
-        void* userdata
-    );
-
+    static void mouseCallback(int event, int x, int y, int flags, void* userdata);
 
     ClickTranslator& translator_;
-
     ClickCallback callback_;
     ClickCallback rightClickCallback_;
-     VoidCallback outsideClickCallback_;
+    VoidCallback outsideClickCallback_;
 
 };

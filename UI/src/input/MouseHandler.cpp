@@ -1,5 +1,4 @@
 #include "MouseHandler.hpp"
-#include <iostream>
 
 void MouseHandler::attachTo(const std::string& windowName)
 {
@@ -30,7 +29,6 @@ void MouseHandler::mouseCallback(int event, int x, int y, int flags, void* userd
 
     auto position = handler->translator_.pixelToCell(x, y);
 
-    // לחיצה מחוץ ללוח
     if (!position.has_value())
     {
         if (event == cv::EVENT_LBUTTONDOWN && handler->outsideClickCallback_)

@@ -9,7 +9,6 @@
 
 class Piece {
 public:
-
     enum class Color { WHITE, BLACK };
     enum class Type  { KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN };
 
@@ -22,16 +21,10 @@ public:
 
     static std::optional<Piece> fromToken(const std::string& token);
 
-    PieceState state() const
-    {
-        return state_;
-    }
+    PieceState state() const { return state_;}
 
-    void setState(PieceState state)
-    {
-        state_ = state;
-    }
-    
+    void setState(PieceState state){ state_ = state; }
+
 private:
     PieceState state_ = PieceState::IDLE;
     Color color_;

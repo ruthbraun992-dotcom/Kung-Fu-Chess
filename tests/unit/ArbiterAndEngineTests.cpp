@@ -35,7 +35,7 @@ TEST_CASE("Arbiter: conflictsWithActiveMotion detects same destination") {
     Position from1{0, 0}, to1{0, 2};
     arbiter.startMotion(Motion{from1, to1, makeWhiteRook(), 2000L});
 
-    Position from2{2, 2}, to2{0, 2}; // אותו יעד
+    Position from2{2, 2}, to2{0, 2}; 
     REQUIRE(arbiter.conflictsWithActiveMotion(from2, to2));
 }
 
@@ -44,7 +44,6 @@ TEST_CASE("Arbiter: conflictsWithActiveMotion detects target reserved as another
     Position from1{0, 0}, to1{0, 2};
     arbiter.startMotion(Motion{from1, to1, makeWhiteRook(), 2000L});
 
-    // מישהו מנסה לנחות במקום שממנו כלי אחר עדיין "בטיסה"
     Position from2{5, 0}, to2{0, 0};
     REQUIRE(arbiter.conflictsWithActiveMotion(from2, to2));
 }

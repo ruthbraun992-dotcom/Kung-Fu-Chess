@@ -1,6 +1,5 @@
 #include "RealTimeArbiter.hpp"
 #include "CaptureEvent.hpp"
-#include <iostream>
 
 void RealTimeArbiter::startMotion(Motion m) {
     m.startTime = now_;
@@ -24,12 +23,6 @@ void RealTimeArbiter::startFollowUpState(const Position& at, Piece piece, PieceS
     durationMs = static_cast<long>(cfg.frameCount) * 1000L / cfg.framesPerSecond;
     if (durationMs < 1) durationMs = 1;
 
-    std::cout << "startFollowUpState state=" << stateToString(state)
-               << " frameCount=" << cfg.frameCount
-               << " fps=" << cfg.framesPerSecond
-               << " durationMs=" << durationMs
-               << std::endl;
-
     Motion m{at, at, piece, state, 0L, durationMs};
     startMotion(m);
 }
@@ -37,7 +30,7 @@ void RealTimeArbiter::startFollowUpState(const Position& at, Piece piece, PieceS
 std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
     now_ += ms;
     std::vector<CaptureEvent> captured;
-    std::vector<Position> capturedPositions;   // NEW
+    std::vector<Position> capturedPositions; 
 
     struct PendingFollowUp { Position at; Piece piece; PieceState state; };
     std::vector<PendingFollowUp> pending;
@@ -56,7 +49,7 @@ std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
                     if (jump.at.row == to.row && jump.at.col == to.col &&
                         jump.piece.color() != it->motion.piece.color()) {
                         captured.push_back({it->motion.piece, jump.piece, to});
-                        capturedPositions.push_back(to);   // NEW
+                        capturedPositions.push_back(to);  
                         caughtByJumper = true;
                         break;
                     }
@@ -73,7 +66,7 @@ std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
                 if (existing.has_value())
                 {
                     captured.push_back({*existing, landedPiece, to});
-                    capturedPositions.push_back(to);   // NEW
+                    capturedPositions.push_back(to);  
                 }
                 int lastRow = (landedPiece.color() == Piece::Color::WHITE) ? 0 : board.rows() - 1;
                 if (landedPiece.type() == Piece::Type::PAWN && to.row == lastRow) {
@@ -115,8 +108,6 @@ std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
         }
     }
 
-    // NEW: purge any stale rest/jump entries left behind at positions where a capture just happened,
-    // so a dead piece's leftover animation state can never resurrect it onto the board.
     if (!capturedPositions.empty())
     {
         auto isCapturedPos = [&](const Position& p) {
@@ -155,7 +146,7 @@ bool RealTimeArbiter::conflictsWithActiveMotion(const Position& from, const Posi
                               am.motion.from.col == am.motion.to.col);
 
         if (isStationary)
-            continue;   // כלי במנוחה לא נחשב "תנועה מתחרה"
+            continue; 
 
         if (am.motion.from.row == from.row && am.motion.from.col == from.col) return true;
         if (am.motion.to.row == to.row && am.motion.to.col == to.col) return true;
@@ -177,7 +168,7 @@ RealTimeArbiter::currentPositionOf(const Position& from) const
         if (active.motion.from.row == from.row && active.motion.from.col == from.col) {
             double progress = (active.motion.durationMs > 0)
             ? double(now_ - active.motion.startTime) / active.motion.durationMs
-            : 1.0;   // אם משום מה durationMs==0, נחשיב כמסיים מיד ולא ניצור NaN
+            : 1.0;  
             if (progress < 0) progress = 0;
             if (progress > 1) progress = 1;
 

@@ -8,7 +8,7 @@ class MovesLogRenderer
 public:
     MovesLogRenderer(int width, int height, int boardRows, int boardCols);
 
-    cv::Mat renderColumn(const GameStats& stats, Piece::Color color) const;   // חדש - עמודה בודדת
+    cv::Mat renderColumn(const GameStats& stats, Piece::Color color) const; 
 
 private:
     std::string formatTime(long timestampMs) const;

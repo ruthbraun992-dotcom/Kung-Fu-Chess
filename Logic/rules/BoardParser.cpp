@@ -8,7 +8,7 @@ Board BoardParser::parse(const std::vector<std::string>& boardLines) {
 
     for (const auto& line : boardLines) {
         std::vector<std::string> tokens = splitTokens(line);
-        if (tokens.empty()) continue; // skip blank lines defensively
+        if (tokens.empty()) continue; 
         validateTokens(tokens);
         tokenRows.push_back(tokens);
     }

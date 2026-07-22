@@ -3,9 +3,6 @@
 
 #include <stdexcept>
 #include <string>
-
-// Thrown by BoardParser when the input fixture is invalid.
-// Carries a machine-readable error code, e.g. "UNKNOWN_TOKEN".
 class ParseError : public std::runtime_error {
 public:
     explicit ParseError(const std::string& code)

@@ -15,7 +15,6 @@ public:
 
     const cv::Mat& getSprite(Piece::Color color, Piece::Type type,
                               const std::string& state, long now) const;
-
     std::string spritePath(Piece::Color color, Piece::Type type) const;
 
 private:

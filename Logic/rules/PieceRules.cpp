@@ -34,7 +34,7 @@ bool isValidShape(const Piece& piece, int fromRow, int fromCol, int toRow, int t
                 if (rowStep == 2 * forward && fromRow == startRow) return true;
                 return false;
             }
-            return rowStep == forward && colStep == 1;//TO DO רק אם יש שם כלי אחר יריב
+            return rowStep == forward && colStep == 1;
         }
     }
     return false;
@@ -76,7 +76,7 @@ std::vector<std::pair<int,int>> getPath(const Piece& piece, int fromRow, int fro
             return path;
         }
         default:
-            return path; // KING, KNIGHT: no intermediate cells
+            return path; 
     }
 
     int row = fromRow + rowStep, col = fromCol + colStep;

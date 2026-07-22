@@ -20,7 +20,7 @@ std::string MovesLogRenderer::formatTime(long timestampMs) const
 std::string MovesLogRenderer::squareNotation(Position pos) const
 {
     char file = static_cast<char>('a' + pos.col);
-    int rank = boardRows_ - pos.row;   // row 0 = rank הגבוה ביותר
+    int rank = boardRows_ - pos.row;   
     return std::string(1, file) + std::to_string(rank);
 }
 
@@ -66,8 +66,7 @@ cv::Mat MovesLogRenderer::renderColumn(const GameStats& stats, Piece::Color colo
 
         if (y + rowHeight_ < height_)
         {
-            cv::putText(canvas, line, cv::Point(10, y),
-                        cv::FONT_HERSHEY_SIMPLEX, 0.45, cv::Scalar(0, 0, 0), 1);
+            cv::putText(canvas, line, cv::Point(10, y), cv::FONT_HERSHEY_SIMPLEX, 0.45, cv::Scalar(0, 0, 0), 1);
             y += rowHeight_;
         }
     }

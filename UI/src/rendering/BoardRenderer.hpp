@@ -12,8 +12,7 @@
 class BoardRenderer
 {
 public:
-    BoardRenderer(int rows, int cols, int cellSize,
-                  const SpriteManager& sprites,
+    BoardRenderer(int rows, int cols, int cellSize, const SpriteManager& sprites,
                   int offsetX, int offsetY, const GameEngine& engine);
 
     void setSelectedCell(const std::optional<Position>& selected);

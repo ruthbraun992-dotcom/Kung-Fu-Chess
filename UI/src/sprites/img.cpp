@@ -1,5 +1,4 @@
 #include "img.hpp"
-#include <iostream>
 #include <stdexcept>
 
 Img::Img() {
@@ -95,5 +94,4 @@ void Img::show() {
     }
     
     cv::imshow("Image", img);
-    // cv::destroyAllWindows();
 } 

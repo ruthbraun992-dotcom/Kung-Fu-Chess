@@ -15,14 +15,13 @@ bool validateMove(const Board& board, int fromRow, int fromCol, int toRow, int t
     std::optional<Piece> destination = board.getCell(toRow, toCol);
 
     if (destination.has_value() && destination->color() == piece->color()) {
-        return false; // cannot capture friendly piece
+        return false; 
     }
 
-    // Pawn forward move must land on an empty cell (no straight capture)
     if (piece->type() == Piece::Type::PAWN) {
         int colDiff = std::abs(toCol - fromCol);
         if (colDiff == 0 && destination.has_value()) return false;
-        if (colDiff == 1 && !destination.has_value()) return false; // diagonal must capture
+        if (colDiff == 1 && !destination.has_value()) return false; 
     }
 
     for (auto pos : PieceRules::getPath(*piece, fromRow, fromCol, toRow, toCol)) {

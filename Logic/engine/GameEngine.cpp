@@ -2,7 +2,6 @@
 #include "rules/RuleEngine.hpp"
 #include <cmath>
 #include <algorithm>
-#include <iostream>
 
 bool GameEngine::requestMove(int fromRow, int fromCol, int toRow, int toCol) {
     if (gameOver_) return false;
@@ -57,10 +56,9 @@ bool GameEngine::requestJump(int row, int col) {
         : 100L;
     if (durationMs < 1) durationMs = 1;   // מונע 0/0 (NaN) בהמשך
 
-    // בתוך requestJump, בסוף:
-arbiter_.startJump(pos, *piece, durationMs);
-stats_.recordMove(piece->color(), piece->type(), pos, pos, /*isJump=*/true, arbiter_.currentTime());
-return true;
+    arbiter_.startJump(pos, *piece, durationMs);
+    stats_.recordMove(piece->color(), piece->type(), pos, pos, /*isJump=*/true, arbiter_.currentTime());
+    return true;
 }
 
 void GameEngine::update(long ms)

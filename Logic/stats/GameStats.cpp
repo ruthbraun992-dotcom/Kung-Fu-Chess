@@ -1,20 +1,14 @@
 #include "GameStats.hpp"
 #include "CaptureEvent.hpp"
 
-void GameStats::recordMove(Piece::Color color,
-                           Piece::Type type,
-                           Position from,
-                           Position to,
-                           bool isJump,
-                           long timestampMs)
+void GameStats::recordMove(Piece::Color color,Piece::Type type, Position from, Position to, bool isJump, long timestampMs)
 {
     moves_.push_back({color, type, from, to, isJump, timestampMs});
 }
 
 void GameStats::recordCapture(const CaptureEvent& event)
 {
-    scores_[event.capturer.color()] +=
-        valueOf(event.capturedPiece.type());
+    scores_[event.capturer.color()] += valueOf(event.capturedPiece.type());
 }
 
 int GameStats::score(Piece::Color color) const

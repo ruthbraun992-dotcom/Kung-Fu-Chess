@@ -18,12 +18,7 @@ struct MoveRecord {
 
 class GameStats {
 public:
-    void recordMove(Piece::Color color,
-                Piece::Type type,
-                Position from,
-                Position to,
-                bool isJump,
-                long timestampMs);  
+    void recordMove(Piece::Color color, Piece::Type type, Position from, Position to, bool isJump, long timestampMs);  
 
     void recordCapture(const CaptureEvent& event);
 

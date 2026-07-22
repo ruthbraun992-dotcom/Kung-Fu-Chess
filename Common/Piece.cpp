@@ -33,7 +33,7 @@ char Piece::typeToChar(Type t) {
         case Type::KNIGHT: return 'N';
         case Type::PAWN:   return 'P';
     }
-    return '?'; // unreachable
+    return '?'; 
 }
 
 std::optional<Piece::Color> Piece::charToColor(char c) {

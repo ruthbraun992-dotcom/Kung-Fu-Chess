@@ -1,6 +1,5 @@
 // BoardMapper.cpp
 #include "BoardMapper.hpp"
-
 namespace BoardMapper {
 
 std::optional<Position> pixelToCell(int x, int y, const Board& board) {
@@ -15,4 +14,4 @@ std::optional<Position> pixelToCell(int x, int y, const Board& board) {
     return Position{row, col};
 }
 
-} // namespace BoardMapper
+}

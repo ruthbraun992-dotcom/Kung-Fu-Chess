@@ -9,7 +9,6 @@ class AnimationConfigLoader
 {
 public:
     explicit AnimationConfigLoader(const std::string& assetDir);
-
     const AnimationConfig& get(Piece::Color color, Piece::Type type, PieceState state) const;
 
 private:

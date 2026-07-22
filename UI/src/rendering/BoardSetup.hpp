@@ -5,7 +5,6 @@
 
 inline void setupStartingPosition(Board& board)
 {
-    // White
     board.setCell(0, 0, Piece(Piece::Color::BLACK, Piece::Type::ROOK));
     board.setCell(0, 1, Piece(Piece::Color::BLACK, Piece::Type::KNIGHT));
     board.setCell(0, 2, Piece(Piece::Color::BLACK, Piece::Type::BISHOP));
@@ -20,7 +19,6 @@ inline void setupStartingPosition(Board& board)
         board.setCell(1, c, Piece(Piece::Color::BLACK, Piece::Type::PAWN));
     }
 
-    // Black
     board.setCell(7, 0, Piece(Piece::Color::WHITE, Piece::Type::ROOK));
     board.setCell(7, 1, Piece(Piece::Color::WHITE, Piece::Type::KNIGHT));
     board.setCell(7, 2, Piece(Piece::Color::WHITE, Piece::Type::BISHOP));
