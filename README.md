@@ -77,7 +77,7 @@ ctest
 | Graphics | Transparent piece sprites | ✅ |
 | Graphics | Move/jump/rest animations | ✅ |
 | Graphics | Local playable client (mouse input) | ✅ |
-| Graphics | Selection / error / game-over display | ⚠️ In progress |
+| Graphics | Selection / error / game-over display | ✅ In progress |
 | Server | WebSocket server | 🚧 Not started |
 | Server | Room creation/joining | 🚧 Not started |
 | Server | White/black assignment | 🚧 Not started |
