@@ -1,5 +1,6 @@
 #include "GameEngine.hpp"
 #include "rules/RuleEngine.hpp"
+#include "events/Events.hpp"
 #include <cmath>
 #include <algorithm>
 
@@ -34,9 +35,11 @@ bool GameEngine::requestMove(int fromRow, int fromCol, int toRow, int toCol) {
     motion.startTime = 0,
     motion.durationMs = durationMs};
 
-arbiter_.startMotion(motion);
-stats_.recordMove(piece->color(), piece->type(), from, to, /*isJump=*/false, arbiter_.currentTime());
-return true;
+    arbiter_.startMotion(motion);
+    stats_.recordMove(piece->color(), piece->type(), from, to, /*isJump=*/false, arbiter_.currentTime());
+    bus_.publish(MoveLoggedEvent{piece->color(), "Move to "+ to.toString()});
+    bus_.publish(SoundEvent{SoundType::Move});
+    return true;
 }
 
 bool GameEngine::requestJump(int row, int col) {
@@ -58,6 +61,8 @@ bool GameEngine::requestJump(int row, int col) {
 
     arbiter_.startJump(pos, *piece, durationMs);
     stats_.recordMove(piece->color(), piece->type(), pos, pos, /*isJump=*/true, arbiter_.currentTime());
+    bus_.publish(MoveLoggedEvent{piece->color(), "Jump to " + pos.toString()});
+    bus_.publish(SoundEvent{SoundType::Move});
     return true;
 }
 
@@ -68,12 +73,31 @@ void GameEngine::update(long ms)
     for (const auto& c : captured)
     {
         stats_.recordCapture(c);
+
+        bus_.publish(PieceCapturedEvent{
+            c.capturedPiece.color(),
+            c.capturedPiece.type(),
+            c.at
+        });
+
+        bus_.publish(ScoreUpdatedEvent{
+            c.capturer.color(),
+            stats_.score(c.capturedPiece.color())
+        });
+
+        bus_.publish(SoundEvent{SoundType::Capture});
+
         if (c.capturedPiece.type() == Piece::Type::KING)
         {
             gameOver_ = true;
+            bus_.publish(GameOverEvent{
+                c.capturer.color(),
+                "king_captured"
+            });
         }
     }
 }
+
 std::optional<RenderPosition> GameEngine::currentPositionOf(const Position& from) const {
     return arbiter_.currentPositionOf(from);
 }

@@ -7,10 +7,11 @@
 #include "RenderPosition.hpp"
 #include "PieceState.hpp"
 #include "stats/GameStats.hpp"
+#include "events/EventBus.hpp"
 class GameEngine {
 public:
-    GameEngine(Board board, const AnimationConfigLoader& configs)
-        : board_(std::move(board)), configs_(configs), arbiter_(configs) {}
+    GameEngine(Board board, const AnimationConfigLoader& configs,EventBus& bus)
+        : board_(std::move(board)), configs_(configs), arbiter_(configs) ,bus_(bus){}
 
     bool requestMove(int fromRow, int fromCol, int toRow, int toCol);
     bool requestJump(int row, int col);
@@ -32,4 +33,5 @@ private:
     RealTimeArbiter arbiter_;
     bool gameOver_ = false;
     GameStats stats_;
+    EventBus& bus_;
 };

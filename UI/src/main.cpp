@@ -80,7 +80,8 @@ int main()
         setupStartingPosition(board);
 
         AnimationConfigLoader animConfigs(spriteDir.string());
-        GameEngine engine(std::move(board), animConfigs);
+        EventBus bus;
+        GameEngine engine(std::move(board), animConfigs, bus);
         Controller controller(engine);
 
         SpriteManager sprites(spriteDir.string());
