@@ -10,9 +10,12 @@
 #include "events/EventBus.hpp"
 class GameEngine {
 public:
-    GameEngine(Board board, const AnimationConfigLoader& configs,EventBus& bus)
-        : board_(std::move(board)), configs_(configs), arbiter_(configs) ,bus_(bus){}
-
+    GameEngine(Board board, AnimationConfigLoader configs, EventBus& bus)
+    : board_(std::move(board)),
+      configs_(std::move(configs)),
+      arbiter_(configs_),
+      bus_(bus)
+{}
     bool requestMove(int fromRow, int fromCol, int toRow, int toCol);
     bool requestJump(int row, int col);
     void printBoard(std::ostream& out) const { board_.Printer(out); }
@@ -29,8 +32,7 @@ public:
 
 private:
     Board board_;
-    const AnimationConfigLoader& configs_;
-    RealTimeArbiter arbiter_;
+    AnimationConfigLoader configs_;    RealTimeArbiter arbiter_;
     bool gameOver_ = false;
     GameStats stats_;
     EventBus& bus_;

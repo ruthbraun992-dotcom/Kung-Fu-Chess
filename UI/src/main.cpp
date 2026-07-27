@@ -78,9 +78,8 @@ int main()
 
         Board board(8, 8);
         setupStartingPosition(board);
-
-        AnimationConfigLoader animConfigs(spriteDir.string());
         EventBus bus;
+        AnimationConfigLoader animConfigs("C:\\Users\\This User\\Desktop\\Kung-Fu Chess\\UI\\pieces6");
         GameEngine engine(std::move(board), animConfigs, bus);
         Controller controller(engine);
 

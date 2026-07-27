@@ -15,3 +15,26 @@ cpp/build/
 cpp/build/
 build/
 *.dll
+
+# Build files
+build/
+**/build/
+
+# Visual Studio
+.vs/
+*.sln
+*.vcxproj.user
+
+# Compiled files
+*.exe
+*.dll
+*.lib
+*.obj
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# Catch2 generated files
+ThirdParty/

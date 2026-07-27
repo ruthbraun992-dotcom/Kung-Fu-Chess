@@ -3,29 +3,43 @@
 #include "events/Events.hpp"
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 bool GameEngine::requestMove(int fromRow, int fromCol, int toRow, int toCol) {
-    if (gameOver_) return false;
+        std::cout << "ENGINE MOVE START1" << std::endl;
+if (gameOver_) return false;
+        std::cout << "ENGINE MOVE START2" << std::endl;
 
     Position from{fromRow, fromCol};
     Position to{toRow, toCol};
+        std::cout << "ENGINE MOVE START3" << std::endl;
 
     if (arbiter_.hasActiveMotionFrom(from)) return false;
     if (arbiter_.conflictsWithActiveMotion(from, to)) return false;
+        std::cout << "ENGINE MOVE START4" << std::endl;
 
     bool valid = RuleEngine::validateMove(board_, fromRow, fromCol, toRow, toCol);
     if (!valid) return false;
+        std::cout << "ENGINE MOVE START5" << std::endl;
 
     auto piece = board_.getCell(fromRow, fromCol);
     if (!piece.has_value()) return false;
+        std::cout << "ENGINE MOVE START6" << std::endl;
 
     int distance = std::max(std::abs(toRow - fromRow), std::abs(toCol - fromCol));
-
+        std::cout << "ENGINE MOVE START7" << std::endl;
+std::cout 
+    << "piece color="
+    << static_cast<int>(piece->color())
+    << " type="
+    << static_cast<int>(piece->type())
+    << std::endl;
     const auto& moveCfg = configs_.get(piece->color(), piece->type(), PieceState::MOVE);
     long durationMs = (moveCfg.speedMetersPerSec > 0.0)
         ? static_cast<long>((distance / moveCfg.speedMetersPerSec) * 1000.0)
         : distance * 100L;
     if (durationMs < 1) durationMs = 1;   // מונע 0/0 (NaN) בהמשך
+        std::cout << "ENGINE MOVE START8" << std::endl;
 
     Motion motion{
     motion.from = from,
@@ -34,11 +48,14 @@ bool GameEngine::requestMove(int fromRow, int fromCol, int toRow, int toCol) {
     motion.state = PieceState::MOVE,
     motion.startTime = 0,
     motion.durationMs = durationMs};
+        std::cout << "ENGINE MOVE START9" << std::endl;
 
     arbiter_.startMotion(motion);
     stats_.recordMove(piece->color(), piece->type(), from, to, /*isJump=*/false, arbiter_.currentTime());
     bus_.publish(MoveLoggedEvent{piece->color(), "Move to "+ to.toString()});
     bus_.publish(SoundEvent{SoundType::Move});
+        std::cout << "ENGINE MOVE END10" << std::endl;
+
     return true;
 }
 
