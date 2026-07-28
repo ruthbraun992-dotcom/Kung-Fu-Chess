@@ -1,7 +1,9 @@
 #include "RealTimeArbiter.hpp"
 #include "CaptureEvent.hpp"
+#include <iostream>
 
 void RealTimeArbiter::startMotion(Motion m) {
+    std::cout << "START MOTION CALLED\n";
     m.startTime = now_;
     m.piece.setState(m.state);
     motions_.push_back(ActiveMotion{m, now_ + m.durationMs});
@@ -12,20 +14,7 @@ void RealTimeArbiter::startJump(Position at, Piece piece, long durationMs) {
     jumps_.push_back(ActiveJump{at, piece, now_ + durationMs});
 }
 
-void RealTimeArbiter::startFollowUpState(const Position& at, Piece piece, PieceState state)
-{
-    const auto& cfg = configs_.get(piece.color(), piece.type(), state);
 
-    long durationMs;
-    if (cfg.isLoop || cfg.framesPerSecond <= 0 || cfg.frameCount <= 0)
-        return;
-
-    durationMs = static_cast<long>(cfg.frameCount) * 1000L / cfg.framesPerSecond;
-    if (durationMs < 1) durationMs = 1;
-
-    Motion m{at, at, piece, state, 0L, durationMs};
-    startMotion(m);
-}
 
 std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
     now_ += ms;
@@ -218,4 +207,45 @@ std::optional<long> RealTimeArbiter::stateDurationOf(const Position& from) const
             return active.motion.durationMs;
     }
     return std::nullopt;
+}
+
+bool RealTimeArbiter::hasActiveMotionTo(const Position& pos) const
+{
+    for (const auto& motion : motions_) {
+        if (motion.motion.to.row == pos.row &&
+            motion.motion.to.col == pos.col)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+void RealTimeArbiter::startFollowUpState(
+    const Position& at,
+    Piece piece,
+    PieceState state)
+{
+    const auto& cfg = configs_.get(
+        piece.color(),
+        piece.type(),
+        state
+    );
+
+    Motion m{
+   at,
+   at,
+piece,
+     state,
+    now_,
+        static_cast<long>(
+            1000.0 / cfg.framesPerSecond * cfg.frameCount
+        )};
+
+
+
+    motions_.push_back({
+        m,
+        now_ + m.durationMs
+    });
 }

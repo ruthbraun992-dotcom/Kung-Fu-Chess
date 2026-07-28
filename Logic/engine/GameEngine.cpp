@@ -9,13 +9,16 @@
 using json = nlohmann::json;
 
 bool GameEngine::requestMove(int fromRow, int fromCol, int toRow, int toCol) {
-if (gameOver_) return false;
+
+std::cout << "REQUEST MOVE CALLED\n";
+    if (gameOver_) return false;
 
     Position from{fromRow, fromCol};
     Position to{toRow, toCol};
 
     if (arbiter_.hasActiveMotionFrom(from)) return false;
-    if (arbiter_.conflictsWithActiveMotion(from, to)) return false;
+if (arbiter_.hasActiveMotionTo(to)) return false;
+if (arbiter_.conflictsWithActiveMotion(from, to)) return false;
 
     bool valid = RuleEngine::validateMove(board_, fromRow, fromCol, toRow, toCol);
     if (!valid) return false;
@@ -39,11 +42,16 @@ if (gameOver_) return false;
    0,
    durationMs};
 
-    arbiter_.startMotion(motion);
+startMotion(motion);
+bus_.publish(MotionStartedEvent{
+    from,
+    to,
+    *piece,
+    durationMs
+});
     stats_.recordMove(piece->color(), piece->type(), from, to, /*isJump=*/false, arbiter_.currentTime());
-    bus_.publish(MoveLoggedEvent{piece->color(), "Move to "+ to.toString()});
-    bus_.publish(SoundEvent{SoundType::Move});
-
+    bus_.publish(MoveLoggedEvent{piece->color(), "Move to " + to.toString()});
+bus_.publish(SoundEvent{SoundType::Move});
     return true;
 }
 
@@ -75,7 +83,7 @@ void GameEngine::update(long ms)
 {
     auto captured = arbiter_.advanceTime(ms, board_);
 
-    for (const auto& c : captured)
+ for (const auto c : captured)
     {
         stats_.recordCapture(c);
 
@@ -145,4 +153,16 @@ void GameEngine::updateBoardFromServer(const json& boardStateJson) {
             board_.setCell(row, col, Piece(color, type));
         }
     }
+}
+
+void GameEngine::startMotion(const Motion& motion)
+{
+    arbiter_.startMotion(motion);
+
+    bus_.publish(MotionStartedEvent{
+        motion.from,
+        motion.to,
+        motion.piece,
+        motion.durationMs
+    });
 }

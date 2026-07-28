@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
 
         // ========== SECTION 7: SETUP MESSAGE HANDLER ==========
         // ✅ NEW CODE STARTS HERE
-        gameClient.onMessage = [&](const json& msg) {
+        gameClient.onMessageReceived = [&](const json& msg) {
             std::string type = msg.value("type", "");
             
             if (type == "moveLogged") {

@@ -43,7 +43,12 @@ void GameClient::onClose(ConnectionHdl hdl) {
 void GameClient::onMessage(ConnectionHdl hdl, WsClient::message_ptr msg) {
     try {
         json j = json::parse(msg->get_payload());
-        if (onMessageReceived) onMessage(j);
+        if (j.value("type", "") == "boardState") {
+            if (onBoardStateUpdate) {
+                onBoardStateUpdate(j);
+            }
+        }
+        if (onMessageReceived) onMessageReceived(j);
     } catch (const std::exception& e) {
         std::cerr << "Message parse error: " << e.what() << std::endl;
     }
@@ -91,24 +96,4 @@ void GameClient::sendMove(int fromRow, int fromCol, int toRow, int toCol) {
 
 void GameClient::disconnect() {
     client_.close(connectionHdl_, websocketpp::close::status::normal, "");
-}
-
-void GameClient::onMessage_Internal(ConnectionHdl hdl, WsClient::message_ptr msg) {
-    try {
-        json j = json::parse(msg->get_payload());
-        std::cout << "📥 Received: " << j.value("type", "unknown") << std::endl;
-        
-        // ✅ NEW: Handle boardState separately
-        if (j.value("type", "") == "boardState") {
-            if (onBoardStateUpdate) {
-                onBoardStateUpdate(j);
-            }
-        }
-        
-        if (onMessageReceived) {
-            onMessage(j);
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "❌ Message parse error: " << e.what() << std::endl;
-    }
 }

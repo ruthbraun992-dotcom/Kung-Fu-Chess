@@ -35,3 +35,17 @@ struct GameOverEvent {
     std::string  reason;
 };
 
+struct PieceMoveStartedEvent {
+    std::string gameId;
+    Position from;
+    Position to;
+    Piece piece;
+    long durationMs;
+};
+
+struct MotionStartedEvent {
+    Position from;
+    Position to;
+    Piece piece;
+    long durationMs;
+};

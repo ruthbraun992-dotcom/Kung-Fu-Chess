@@ -28,6 +28,7 @@ public:
     std::optional<PieceState> currentStateOf(const Position& from) const;
     std::optional<long> stateStartTimeOf(const Position& from) const;  
     std::optional<long> stateDurationOf(const Position& from) const;
+    bool RealTimeArbiter::hasActiveMotionTo(const Position& pos) const;
 
 private:
     struct ActiveMotion {
@@ -40,7 +41,7 @@ private:
         long arrivalAt;
     };
 
-    void startFollowUpState(const Position& at, Piece piece, PieceState state);
+   void startFollowUpState(const Position& at, Piece piece, PieceState state);
 
     const AnimationConfigLoader& configs_;
     long now_ = 0;

@@ -32,7 +32,7 @@ public:
     std::optional<long> stateStartTimeOf(const Position& from) const; 
     std::optional<long> stateDurationOf(const Position& from) const;
     void updateBoardFromServer(const json& boardStateJson);
-
+    void startMotion(const Motion& motion);
 private:
     Board board_;
     AnimationConfigLoader configs_;    RealTimeArbiter arbiter_;

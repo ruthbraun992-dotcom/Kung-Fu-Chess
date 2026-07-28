@@ -17,7 +17,10 @@ public:
     using ConnectionHdl = websocketpp::connection_hdl;
     using SteadyTimer = asio::steady_timer;   // אם המערכת שלך משתמשת ב-Boost.Asio ולא standalone asio, שני זה ל-boost::asio::steady_timer
 
-    WebSocketServer(GameManager& games, UserRepository& users, uint16_t port);
+WebSocketServer(
+    GameManager& games,
+    UserRepository& users,
+    uint16_t port);
 
     void run();
     std::string handleMessage(int sessionId, const std::string& payload);
@@ -30,6 +33,7 @@ public:
 
     void startDisconnectTimeout(const std::string& gameId, int disconnectedSessionId, const std::string& username);
     void cancelDisconnectTimeout(const std::string& gameId);
+    void startGameLoop();
 
 private:
     void onOpen(ConnectionHdl hdl);

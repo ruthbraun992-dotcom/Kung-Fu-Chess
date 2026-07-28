@@ -8,11 +8,17 @@
 #include "Logger.hpp"
 
 using json = nlohmann::json;
-
-WebSocketServer::WebSocketServer(GameManager& games, UserRepository& users, uint16_t port)
-    : games_(games), users_(users), port_(port)
+WebSocketServer::WebSocketServer(
+    GameManager& games,
+    UserRepository& users,
+    uint16_t port)
+    :
+    games_(games),
+    users_(users),
+    port_(port)
 {
     server_.init_asio();
+
     server_.set_reuse_addr(true);
 
     server_.set_open_handler([this](ConnectionHdl hdl) { onOpen(hdl); });
@@ -22,10 +28,14 @@ WebSocketServer::WebSocketServer(GameManager& games, UserRepository& users, uint
     });
 }
 
-void WebSocketServer::run() {
+void WebSocketServer::run()
+{
     server_.listen(port_);
     server_.start_accept();
-    server_.run();   // חוסם - מריץ את ה-io_service/event loop
+
+    startGameLoop();
+
+    server_.run();
 }
 
 void WebSocketServer::onOpen(ConnectionHdl hdl) {
@@ -60,6 +70,7 @@ void WebSocketServer::onMessage(ConnectionHdl hdl, WsServer::message_ptr msg) {
     LOG_SEND(*sessionId, response);             // <-- לוג כל תשובה יוצאת
     server_.send(hdl, response, websocketpp::frame::opcode::text);
 }
+
 std::string WebSocketServer::handleMessage(int sessionId, const std::string& payload) {
     try {
         json j = json::parse(payload);
@@ -115,14 +126,64 @@ auto existing = users_.findByUsername(username);
 }
 // WebSocketServer.cpp - move/jump עכשיו דרך games_
 if (action == "move") {
-
+std::cout << "MOVE from session " << sessionId << std::endl;
+    int fromRow = j.at("from").at("row").get<int>();
+    int fromCol = j.at("from").at("col").get<int>();
+    int toRow   = j.at("to").at("row").get<int>();
+    int toCol   = j.at("to").at("col").get<int>();
     GameEngine* engine = games_.getEngineForSession(sessionId);
+    if (!engine)
+    {
+        return json{
+            {"type","moveResult"},
+            {"success",false}
+        }.dump();
+    }
 
+    std::cout << "Session: " << sessionId << std::endl;
+
+auto playerColor = games_.getPlayerColor(sessionId);
+
+if (!playerColor)
+{
+        std::cout << "No player color!" << std::endl;
+
+    return json{
+        {"type","moveResult"},
+        {"success",false}
+    }.dump();
+}
+std::cout << "Player color = "
+          << (*playerColor == Piece::Color::WHITE ? "WHITE" : "BLACK")
+          << std::endl;
+auto piece = engine->board().getCell(fromRow, fromCol);
+
+if (!piece.has_value())
+{
+     std::cout << "No piece" << std::endl;
+    return json{
+        {"type","moveResult"},
+        {"success",false}
+    }.dump();
+}
+std::cout << "Piece color = "
+          << (piece->color()==Piece::Color::WHITE?"WHITE":"BLACK")
+          << std::endl;
+if (piece->color() != *playerColor)
+{
+        std::cout << "Wrong color!" << std::endl;
+
+    return json{
+        {"type","moveResult"},
+        {"success",false},
+        {"reason","not_your_piece"}
+    }.dump();
+}
     bool ok = engine->requestMove(
-        j.at("from").at("row").get<int>(),
-        j.at("from").at("col").get<int>(),
-        j.at("to").at("row").get<int>(),
-        j.at("to").at("col").get<int>()
+       fromRow,
+    fromCol,
+    toRow,
+    toCol
     );
 
     return json{
@@ -280,4 +341,22 @@ void WebSocketServer::cancelDisconnectTimeout(const std::string& gameId) {
         it->second.timer->cancel();
         disconnectTimers_.erase(it);
     }
+}
+
+void WebSocketServer::startGameLoop()
+{
+    auto timer = std::make_shared<SteadyTimer>(server_.get_io_service());
+
+    timer->expires_after(std::chrono::milliseconds(50));
+
+    timer->async_wait(
+        [this, timer](const std::error_code& ec)
+        {
+            if (ec)
+                return;
+
+            games_.update(50);
+
+            startGameLoop();
+        });
 }
