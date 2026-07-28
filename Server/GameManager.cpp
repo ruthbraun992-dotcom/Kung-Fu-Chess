@@ -13,8 +13,6 @@ namespace {
 }
 
 void GameManager::registerEventHandlers(const std::string& gameId, const SendFn& sendToSession) {
-    // broadcast מחפש את ה-sessionId העדכני בכל קריאה - כך שאחרי reconnect
-    // (ששינה whiteSessionId/blackSessionId ב-GameSession) האירועים מגיעים למקום הנכון
     auto broadcast = [this, gameId, sendToSession](const json& j) {
         auto it = games_.find(gameId);
         if (it == games_.end()) return;
@@ -49,12 +47,16 @@ void GameManager::registerEventHandlers(const std::string& gameId, const SendFn&
         broadcast(json{ {"type","gameStarted"} });
     });
 
-    session.bus->subscribe<GameOverEvent>([this, broadcast, gameId](const GameOverEvent& e) {
+    session.bus->subscribe<GameOverEvent>([this, broadcast, gameId, sendToSession](const GameOverEvent& e) {
         broadcast(json{ {"type","gameOver"}, {"winner", colorToString(e.winner)}, {"reason", e.reason} });
         endGame(gameId);
     });
-}
 
+    // ✅ NEW: Send board state after move
+    session.bus->subscribe<MoveLoggedEvent>([this, gameId, sendToSession](const MoveLoggedEvent& e) {
+        broadcastBoardState(gameId, sendToSession);
+    });
+}
 std::string GameManager::createGame(int whiteSessionId, int blackSessionId,
                                      const std::string& whiteUsername, const std::string& blackUsername,
                                      SendFn sendToSession) {
@@ -70,7 +72,7 @@ std::string GameManager::createGame(int whiteSessionId, int blackSessionId,
 
     Board board(8, 8);
     setupStartingPosition(board);
-    AnimationConfigLoader configs("C:\\Users\\This User\\Desktop\\Kung-Fu Chess\\UI\\pieces6");
+    AnimationConfigLoader configs("UI/pieces6");
     session->engine = std::make_unique<GameEngine>(std::move(board), configs, *session->bus);
 
     sessionToGame_[whiteSessionId] = gameId;
@@ -165,4 +167,40 @@ void GameManager::endGame(const std::string& gameId) {
     sessionToGame_.erase(it->second->whiteSessionId);
     sessionToGame_.erase(it->second->blackSessionId);
     games_.erase(it);
+}
+
+void GameManager::broadcastBoardState(const std::string& gameId, const SendFn& sendToSession) {
+    auto it = games_.find(gameId);
+    if (it == games_.end()) return;
+
+    GameSession& session = *it->second;
+    const Board& board = session.engine->board();
+
+    // Build board state JSON
+    json boardState = json::array();
+    
+    for (int row = 0; row < board.rows(); ++row) {
+        for (int col = 0; col < board.cols(); ++col) {
+            auto piece = board.getCell(row, col);
+            if (piece.has_value()) {
+                json cell{
+                    {"row", row},
+                    {"col", col},
+                    {"color", piece->color() == Piece::Color::WHITE ? "WHITE" : "BLACK"},
+                    {"type", static_cast<int>(piece->type())}
+                };
+                boardState.push_back(cell);
+            }
+        }
+    }
+
+    json broadcastMsg{
+        {"type", "boardState"},
+        {"gameId", gameId},
+        {"pieces", boardState}
+    };
+
+    // Send to both players
+    sendToSession(session.whiteSessionId, broadcastMsg.dump());
+    sendToSession(session.blackSessionId, broadcastMsg.dump());
 }

@@ -1,7 +1,7 @@
 // Server/WebSocketServer.cpp
 #include "WebSocketServer.hpp"
 #include "../Logic/events/EventBus.hpp"
-#include "../Logic/events/EventS.hpp"
+#include "../Logic/events/Events.hpp"
 #include "PasswordHasher.hpp"
 #include <nlohmann/json.hpp>
 #include <iostream>
@@ -25,7 +25,6 @@ WebSocketServer::WebSocketServer(GameManager& games, UserRepository& users, uint
 void WebSocketServer::run() {
     server_.listen(port_);
     server_.start_accept();
-    std::cout << "Server listening on port " << port_ << "\n";
     server_.run();   // חוסם - מריץ את ה-io_service/event loop
 }
 
@@ -39,8 +38,6 @@ void WebSocketServer::onClose(ConnectionHdl hdl) {
     if (!sessionId) return;
     LOG_EVENT("Client disconnected, session " + std::to_string(*sessionId));
     
-    std::cout << "Session " << *sessionId << " disconnected\n";
-
     cancelMatchmakingTimeout(*sessionId);
     matchmaking_.removePlayer(*sessionId);
 
@@ -64,7 +61,6 @@ void WebSocketServer::onMessage(ConnectionHdl hdl, WsServer::message_ptr msg) {
     server_.send(hdl, response, websocketpp::frame::opcode::text);
 }
 std::string WebSocketServer::handleMessage(int sessionId, const std::string& payload) {
-    std::cout << "handleMessage: " << payload << std::endl;
     try {
         json j = json::parse(payload);
         std::string action = j.at("action").get<std::string>();
@@ -73,15 +69,7 @@ std::string WebSocketServer::handleMessage(int sessionId, const std::string& pay
             std::string username = j.at("username").get<std::string>();
             std::string password = j.at("password").get<std::string>();
 auto existing = users_.findByUsername(username);
-
-std::cout << "Register request for: " << username << std::endl;
-
-if (existing) {
-    std::cout << "User already exists in DB!" << std::endl;
-} else {
-    std::cout << "User does NOT exist." << std::endl;
-}
-            if (existing) {
+     if (existing) {
     return json{
         {"type", "registerResult"},
         {"success", false},
@@ -128,11 +116,7 @@ if (existing) {
 // WebSocketServer.cpp - move/jump עכשיו דרך games_
 if (action == "move") {
 
-    std::cout << "MOVE 1" << std::endl;
-
     GameEngine* engine = games_.getEngineForSession(sessionId);
-
-    std::cout << "MOVE 2" << std::endl;
 
     bool ok = engine->requestMove(
         j.at("from").at("row").get<int>(),
@@ -140,8 +124,6 @@ if (action == "move") {
         j.at("to").at("row").get<int>(),
         j.at("to").at("col").get<int>()
     );
-
-    std::cout << "MOVE 3 " << ok << std::endl;
 
     return json{
         {"type","moveResult"},
@@ -158,8 +140,6 @@ if (action == "play") {
    if (match) {
     cancelMatchmakingTimeout(match->first.sessionId);
     cancelMatchmakingTimeout(match->second.sessionId);
- std::cout << "First : " << match->first.username
-              << " Second: " << match->second.username << std::endl;
 
     std::string gameId = games_.createGame(
         match->first.sessionId, match->second.sessionId,

@@ -2,12 +2,14 @@
 
 #include "realtime/RealTimeArbiter.hpp"
 #include "animation/AnimationConfigLoader.hpp"
-#include <ostream>
 #include "model/Board.hpp"
 #include "RenderPosition.hpp"
 #include "PieceState.hpp"
 #include "stats/GameStats.hpp"
 #include "events/EventBus.hpp"
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 class GameEngine {
 public:
     GameEngine(Board board, AnimationConfigLoader configs, EventBus& bus)
@@ -29,6 +31,7 @@ public:
     const GameStats& stats() const { return stats_; }
     std::optional<long> stateStartTimeOf(const Position& from) const; 
     std::optional<long> stateDurationOf(const Position& from) const;
+    void updateBoardFromServer(const json& boardStateJson);
 
 private:
     Board board_;

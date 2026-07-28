@@ -99,37 +99,19 @@ void AnimationConfigLoader::loadAll()
     }
 }
 
-// const AnimationConfig& AnimationConfigLoader::get(
-//     Piece::Color color, Piece::Type type, PieceState state) const
-// {
-//     auto it = configs_.find(makeKey(color, type, state));
-//     if (it == configs_.end())
-//         throw std::runtime_error("Missing animation config: " + makeKey(color, type, state));
-//     return it->second;
-// }
-
 const AnimationConfig& AnimationConfigLoader::get(
     Piece::Color color,
     Piece::Type type,
     PieceState state) const
 {
-    std::cout << "CONFIG GET START" << std::endl;
-
     auto key = makeKey(color, type, state);
-
-    std::cout << "CONFIG KEY: " << key << std::endl;
 
     auto it = configs_.find(key);
 
-    std::cout << "CONFIG FIND DONE" << std::endl;
-
     if (it == configs_.end())
     {
-        std::cout << "CONFIG MISSING" << std::endl;
         throw std::runtime_error("Missing animation config: " + key);
     }
-
-    std::cout << "CONFIG FOUND" << std::endl;
 
     return it->second;
 }

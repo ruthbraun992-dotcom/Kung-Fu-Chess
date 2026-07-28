@@ -1,12 +1,17 @@
-// Controller.cpp
 #include "Controller.hpp"
+#include "../UI/src/networking/GameClient.hpp"
+
+Controller::Controller(GameEngine& engine, GameClient* gameClient)
+    : engine_(engine), gameClient_(gameClient)
+{
+}
 
 void Controller::click(const Position& cell)
 {
     if (engine_.isGameOver())
     {
-    selected_.reset();
-    return;
+        selected_.reset();
+        return;
     }
     if (!selected_.has_value())
     {
@@ -34,22 +39,48 @@ void Controller::click(const Position& cell)
         }
 
     Position from = *selected_;
-    bool moved =engine_.requestMove(
-        from.row,
-        from.col,
-        cell.row,
-        cell.col);
-        if (engine_.isGameOver())
-        {
-            selected_.reset();
-            return;
-        }
+    
+    // ✅ SEND TO SERVER
+    bool moved = false;
+    if (gameClient_) {
+        std::cout << "📤 Sending move to server: (" << from.row << "," << from.col 
+                  << ") -> (" << cell.row << "," << cell.col << ")" << std::endl;
+        gameClient_->sendMove(from.row, from.col, cell.row, cell.col);
+        moved = true;
+    } else {
+        // Fallback: local mode
+        std::cout << "🎮 Local mode: move validated locally" << std::endl;
+        moved = engine_.requestMove(from.row, from.col, cell.row, cell.col);
+    }
+        
+    if (engine_.isGameOver())
+    {
+        selected_.reset();
+        return;
+    }
     if (moved)
     {
         selected_.reset();
     }
 }
 
-void Controller::jump(const Position& cell) {
+// ✅ JUMP - also send to server
+void Controller::jump(const Position& cell)
+{
+    if (gameClient_) {
+        // Server doesn't have jump endpoint yet, but we can send it as a special move
+        std::cout << "📤 Sending jump to server: (" << cell.row << "," << cell.col << ")" << std::endl;
+        // For now, treat jump as local
+        // TODO: Add jump support to server if needed
+    }
+    
     bool ok = engine_.requestJump(cell.row, cell.col);
+    if (ok) {
+        std::cout << "✅ Jump executed at (" << cell.row << "," << cell.col << ")" << std::endl;
+    }
+}
+
+void Controller::clickOutside()
+{
+    selected_.reset();
 }

@@ -34,4 +34,19 @@ add_custom_command(TARGET kungfu_chess POST_BUILD
         $<$<CONFIG:Debug>:${OPENCV_LIB_DIR}/opencv_world451d.dll>
         $<$<CONFIG:Release>:${OPENCV_LIB_DIR}/opencv_world451.dll>
         $<TARGET_FILE_DIR:kungfu_chess>
+)# WebSocket client
+target_include_directories(kungfu_chess PRIVATE
+    ${CMAKE_SOURCE_DIR}/websocketpp
+    ${CMAKE_SOURCE_DIR}/asio/asio/include
+    ${CMAKE_SOURCE_DIR}/ThirdParty/json/include
+)
+
+target_compile_definitions(kungfu_chess PRIVATE
+    ASIO_STANDALONE
+    _WEBSOCKETPP_CPP11_STL_
+)
+
+# Add GameClient source
+target_sources(kungfu_chess PRIVATE
+    src/networking/GameClient.cpp
 )

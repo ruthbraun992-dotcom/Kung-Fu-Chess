@@ -37,9 +37,9 @@ public:
     std::optional<int> getOpponentSessionId(int sessionId) const;
     void endGame(const std::string& gameId);
 
-    // שלב 6: ניתוק/חיבור מחדש
     std::optional<ReconnectInfo> tryReconnect(const std::string& username, int newSessionId);
     void forfeitByUsername(const std::string& gameId, const std::string& disconnectedUsername);
+    void GameManager::broadcastBoardState(const std::string& gameId, const SendFn& sendToSession);
 
 private:
     void registerEventHandlers(const std::string& gameId, const SendFn& sendToSession);
