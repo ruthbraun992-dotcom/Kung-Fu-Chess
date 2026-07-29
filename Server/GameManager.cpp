@@ -107,7 +107,14 @@ void GameManager::registerEventHandlers(
 
 
     GameSession& session = *games_.at(gameId);
+session.bus->subscribe<MotionFinishedEvent>(
+    [this, gameId, sendToSession](const MotionFinishedEvent& e)
+    {
+        std::cout << "[SERVER] Motion finished - broadcasting board state" << std::endl;
 
+        broadcastBoardState(gameId, sendToSession);
+    }
+);
 
     session.bus->subscribe<MotionStartedEvent>(
         [broadcast](const MotionStartedEvent& e)
@@ -136,6 +143,30 @@ void GameManager::registerEventHandlers(
         }
     );
 
+    session.bus->subscribe<GameOverEvent>(
+        [this, gameId, sendToSession](const GameOverEvent& e)
+        {
+            std::cout << "🏁 GAME OVER! Winner: " 
+                      << (e.winner == Piece::Color::WHITE ? "WHITE" : "BLACK")
+                      << " Reason: " << e.reason << std::endl;
+
+            auto it = games_.find(gameId);
+            if (it == games_.end()) return;
+
+            json msg{
+                {"type", "gameOver"},
+                {"winner", e.winner == Piece::Color::WHITE ? "WHITE" : "BLACK"},
+                {"reason", e.reason}
+            };
+
+            std::string payload = msg.dump();
+            sendToSession(it->second->whiteSessionId, payload);
+            sendToSession(it->second->blackSessionId, payload);
+
+            endGame(gameId);
+        }
+    );
+    
 }
 std::string GameManager::createGame(int whiteSessionId, int blackSessionId,
                                      const std::string& whiteUsername, const std::string& blackUsername,
@@ -250,43 +281,6 @@ void GameManager::endGame(const std::string& gameId) {
     games_.erase(it);
 }
 
-void GameManager::broadcastBoardState(const std::string& gameId, const SendFn& sendToSession) {
-
-  std::cout << "אנחנו בתוך broadcastBoardState" << std::endl;
-    auto it = games_.find(gameId);
-    if (it == games_.end()) return;
-
-    GameSession& session = *it->second;
-    const Board& board = session.engine->board();
-
-    // Build board state JSON
-    json boardState = json::array();
-    
-    for (int row = 0; row < board.rows(); ++row) {
-        for (int col = 0; col < board.cols(); ++col) {
-            auto piece = board.getCell(row, col);
-            if (piece.has_value()) {
-                json cell{
-                    {"row", row},
-                    {"col", col},
-                    {"color", piece->color() == Piece::Color::WHITE ? "WHITE" : "BLACK"},
-                    {"type", static_cast<int>(piece->type())}
-                };
-                boardState.push_back(cell);
-            }
-        }
-    }
-
-    json broadcastMsg{
-        {"type", "boardState"},
-        {"gameId", gameId},
-        {"pieces", boardState}
-    };
-
-    // Send to both players
-    sendToSession(session.whiteSessionId, broadcastMsg.dump());
-    sendToSession(session.blackSessionId, broadcastMsg.dump());
-}
 std::optional<Piece::Color> GameManager::getPlayerColor(int sessionId) const
 {std::cout << "getPlayerColor sessionId=" << sessionId << std::endl;
 std::cout << "sessionToGame size=" << sessionToGame_.size() << std::endl;
@@ -311,9 +305,52 @@ std::cout << "Current session = " << sessionId << std::endl;
 }
 
 void GameManager::update(long ms)
-{
+{std::cout << "[GameManager::update] Called with ms=" << ms << ", " << games_.size() << " active games" << std::endl;
+    
     for (auto& [gameId, game] : games_)
     {
-        game->engine->update(ms);
+         std::cout << "[GameManager::update] Updating game " << gameId << std::endl;
+       game->engine->update(ms);
     }
+}
+
+json GameManager::createBoardState(const GameEngine& engine)
+{
+    json boardState;
+    boardState["type"] = "boardState";
+    boardState["pieces"] = json::array();
+
+    const Board& board = engine.board();
+
+    for (int row = 0; row < board.rows(); ++row)
+    {
+        for (int col = 0; col < board.cols(); ++col)
+        {
+            auto piece = board.getCell(row, col);
+
+            if (!piece.has_value())
+                continue;
+
+            boardState["pieces"].push_back({
+                {"row", row},
+                {"col", col},
+                {"color", piece->color() == Piece::Color::WHITE ? "WHITE" : "BLACK"},
+                {"type", static_cast<int>(piece->type())}
+            });
+        }
+    }
+
+    return boardState;
+}
+
+void GameManager::broadcastBoardState(
+    const std::string& gameId,
+    SendFn sendToSession)
+{std::cout << "אנחנו בתוך broadcastBoardState" << std::endl;
+    auto& session = *games_.at(gameId);
+
+    json boardState = createBoardState(*session.engine);
+
+    sendToSession(session.whiteSessionId, boardState.dump());
+    sendToSession(session.blackSessionId, boardState.dump());
 }

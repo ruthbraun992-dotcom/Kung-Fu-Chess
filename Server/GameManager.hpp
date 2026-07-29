@@ -39,12 +39,12 @@ public:
 
     std::optional<ReconnectInfo> tryReconnect(const std::string& username, int newSessionId);
     void forfeitByUsername(const std::string& gameId, const std::string& disconnectedUsername);
-    void GameManager::broadcastBoardState(const std::string& gameId, const SendFn& sendToSession);
     std::optional<Piece::Color> getPlayerColor(int sessionId) const;
     void update(long ms);
+    void GameManager::broadcastBoardState(const std::string& gameId, const SendFn sendToSession);
+    json GameManager::createBoardState(const GameEngine& engine);
 
-
-    private:
+private:
     void registerEventHandlers(const std::string& gameId, const SendFn& sendToSession);
     void forceGameOver(const std::string& gameId, Piece::Color winner, const std::string& reason);
     std::optional<std::string> findGameIdByUsername(const std::string& username) const;

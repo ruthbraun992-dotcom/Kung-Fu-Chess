@@ -28,7 +28,7 @@ public:
     std::function<void()> onConnect;
     std::function<void()> onDisconnect;
     std::function<void(const json&)> onBoardStateUpdate;
-
+    std::function<void(const json&)> onPieceMove;
 
 private:
     void onOpen(ConnectionHdl hdl);

@@ -43,12 +43,12 @@ if (arbiter_.conflictsWithActiveMotion(from, to)) return false;
    durationMs};
 
 startMotion(motion);
-bus_.publish(MotionStartedEvent{
-    from,
-    to,
-    *piece,
-    durationMs
-});
+std::cout << "MOVE STARTED" << std::endl;
+
+if (isGameOver())
+{
+    std::cout << "🎯 DETECTED GAME OVER IN REQUEST MOVE" << std::endl;
+}
     stats_.recordMove(piece->color(), piece->type(), from, to, /*isJump=*/false, arbiter_.currentTime());
     bus_.publish(MoveLoggedEvent{piece->color(), "Move to " + to.toString()});
 bus_.publish(SoundEvent{SoundType::Move});
@@ -82,9 +82,13 @@ bool GameEngine::requestJump(int row, int col) {
 void GameEngine::update(long ms)
 {
     auto captured = arbiter_.advanceTime(ms, board_);
-
+    
  for (const auto c : captured)
     {
+        std::cout << "[SERVER] CAPTURED: " << (c.capturedPiece.color() == Piece::Color::WHITE ? "WHITE" : "BLACK")
+                  << " " << static_cast<int>(c.capturedPiece.type()) << std::endl;
+    
+
         stats_.recordCapture(c);
 
         bus_.publish(PieceCapturedEvent{
@@ -102,13 +106,20 @@ void GameEngine::update(long ms)
 
         if (c.capturedPiece.type() == Piece::Type::KING)
         {
+            std::cout << "🏁 KING CAPTURED! Publishing GameOverEvent" << std::endl;
+        
+            Piece::Color winner = c.capturer.color();
+        
             gameOver_ = true;
-            bus_.publish(GameOverEvent{
-                c.capturer.color(),
-                "king_captured"
-            });
-        }
+           std::cout << "🎯 GAME OVER! Winner: "
+                  << (winner == Piece::Color::WHITE ? "WHITE" : "BLACK")
+                  << std::endl;
+
+        bus_.publish(
+            GameOverEvent{winner, "king captured"}
+        );
     }
+}
 }
 
 std::optional<RenderPosition> GameEngine::currentPositionOf(const Position& from) const {
@@ -133,7 +144,8 @@ std::optional<long> GameEngine::stateDurationOf(const Position& from) const
 }
 
 void GameEngine::updateBoardFromServer(const json& boardStateJson) {
-    for (int row = 0; row < board_.rows(); ++row) {
+  std::cout << "Updating board from server..." << std::endl;
+   for (int row = 0; row < board_.rows(); ++row) {
         for (int col = 0; col < board_.cols(); ++col) {
             board_.setCell(row, col, std::nullopt);
         }
@@ -145,7 +157,13 @@ void GameEngine::updateBoardFromServer(const json& boardStateJson) {
         int col = cellJson.value("col", -1);
         std::string colorStr = cellJson.value("color", "");
         int typeInt = cellJson.value("type", -1);
-        
+        std::cout
+    << row << ","
+    << col << " "
+    << colorStr
+    << " "
+    << typeInt
+    << std::endl;
         if (row >= 0 && col >= 0 && typeInt >= 0) {
             Piece::Color color = (colorStr == "WHITE") ? Piece::Color::WHITE : Piece::Color::BLACK;
             Piece::Type type = static_cast<Piece::Type>(typeInt);
@@ -166,3 +184,4 @@ void GameEngine::startMotion(const Motion& motion)
         motion.durationMs
     });
 }
+

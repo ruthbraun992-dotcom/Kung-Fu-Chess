@@ -40,16 +40,52 @@ void GameClient::onClose(ConnectionHdl hdl) {
     if (onDisconnect) onDisconnect();
 }
 
-void GameClient::onMessage(ConnectionHdl hdl, WsClient::message_ptr msg) {
-    try {
-        json j = json::parse(msg->get_payload());
-        if (j.value("type", "") == "boardState") {
-            if (onBoardStateUpdate) {
-                onBoardStateUpdate(j);
+// void GameClient::onMessage(ConnectionHdl hdl, WsClient::message_ptr msg) {
+//     std::cout << "[UI] 📨 Message received: " << message << std::endl;
+//     try {
+//         json j = json::parse(msg->get_payload());
+//         if (j.value("type", "") == "boardState") {
+//             if (onBoardStateUpdate) {
+//                 onBoardStateUpdate(j);
+//             }
+//         }
+//         if (onMessageReceived) onMessageReceived(j);
+//     } catch (const std::exception& e) {
+//         std::cerr << "Message parse error: " << e.what() << std::endl;
+//     }
+// }
+
+//from GPT
+void GameClient::onMessage(ConnectionHdl hdl, WsClient::message_ptr msg)
+{
+    const std::string& message = msg->get_payload();
+    std::cout << "[UI] 📨 Message received: " << message << std::endl;
+
+    try
+    {
+        json msgJson = json::parse(message);
+
+        if (msgJson.value("type", "") == "boardState")
+        {
+            if (onBoardStateUpdate)
+            {
+                onBoardStateUpdate(msgJson);
             }
         }
-        if (onMessageReceived) onMessageReceived(j);
-    } catch (const std::exception& e) {
+    if (msgJson.value("type", "") == "pieceMove")
+    {
+        if (onPieceMove)
+        {
+            onPieceMove(msgJson);
+        }
+    }
+        if (onMessageReceived)
+        {
+            onMessageReceived(msgJson);
+        }
+    }
+    catch (const std::exception& e)
+    {
         std::cerr << "Message parse error: " << e.what() << std::endl;
     }
 }

@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
         if (argc > 2) password = argv[2];
         
         std::cout << "\n================================" << std::endl;
-        std::cout << "👤 USERNAME: " << username << std::endl;
+        std::cout << " USERNAME: " << username << std::endl;
         std::cout << "================================\n" << std::endl;
 
         // ========== SECTION 2: LOAD GRAPHICS ==========
@@ -97,10 +97,11 @@ int main(int argc, char* argv[])
 
         // ========== SECTION 4: CREATE GAME CLIENT ==========
         GameClient gameClient;
-        
         // ========== SECTION 5: CREATE CONTROLLER ==========
         Controller controller(engine, &gameClient);
 
+        bool isReconnected = false;
+        std::string gameIdAfterReconnect = "";
         // ========== SECTION 6: SETUP GRAPHICS RENDERING ==========
         SpriteManager sprites(spriteDir.string());
         BoardRenderer renderer(8, 8, cellSize, sprites, offsetX, offsetY, engine);
@@ -111,12 +112,48 @@ int main(int argc, char* argv[])
         ClickTranslator translator(8, 8, cellSize, offsetX + logColWidth, offsetY);
         MouseHandler mouse(translator);
 
-        // ========== SECTION 7: SETUP MESSAGE HANDLER ==========
-        // ✅ NEW CODE STARTS HERE
-        gameClient.onMessageReceived = [&](const json& msg) {
+// ========== SECTION 7: SETUP MESSAGE HANDLER ==========
+gameClient.onBoardStateUpdate = [&](const json& boardState) {
+    std::cout << "📊 Board state updated from server" << std::endl;
+    engine.updateBoardFromServer(boardState);
+    std::cout << "✅ Board synced" << std::endl;
+};
+
+gameClient.onPieceMove = [&](const json& msg) {
+    std::cout << "[ANIMATION] 🎬 Received pieceMove from server!" << std::endl;
+    
+    try {
+        int fromRow = msg.at("from").at("row");
+        int fromCol = msg.at("from").at("col");
+        int toRow = msg.at("to").at("row");
+        int toCol = msg.at("to").at("col");
+        
+        std::cout << "[ANIMATION] Moving piece from (" 
+                  << fromRow << "," << fromCol << ") to (" 
+                  << toRow << "," << toCol << ")" << std::endl;
+        
+        engine.requestMove(fromRow, fromCol, toRow, toCol);
+    } catch (const std::exception& e) {
+        std::cout << "[ANIMATION] ❌ Error parsing pieceMove: " << e.what() << std::endl;
+    }
+};
+
+    gameClient.onMessageReceived = [&](const json& msg) {
             std::string type = msg.value("type", "");
             
-            if (type == "moveLogged") {
+            if (type == "loginResult") {
+        bool success = msg.value("success", false);
+        if (success) {
+            isReconnected = msg.value("reconnected", false);
+            if (isReconnected) {
+                gameIdAfterReconnect = msg.value("gameId", "");
+                std::string color = msg.value("color", "");
+                std::cout << "🔄 RECONNECTED TO GAME " << gameIdAfterReconnect 
+                          << " as " << color << std::endl;
+            }
+        }
+    }
+    if (type == "moveLogged") {
                 std::string moveText = msg.value("move", "");
                 std::string color = msg.value("color", "");
                 std::cout << "✅ Move logged: " << color << " - " << moveText << std::endl;
@@ -146,7 +183,6 @@ int main(int argc, char* argv[])
             }
         };
 
-        // ✅ NEW: Board state handler
         gameClient.onBoardStateUpdate = [&](const json& boardState) {
             std::cout << "📊 Board state updated from server" << std::endl;
             
@@ -155,7 +191,6 @@ int main(int argc, char* argv[])
             
             std::cout << "✅ Board synced" << std::endl;
         };
-        // ✅ NEW CODE ENDS HERE
 
         // ========== SECTION 8: CONNECT TO SERVER ==========
         std::cout << "🔗 Connecting to server..." << std::endl;
@@ -178,13 +213,19 @@ int main(int argc, char* argv[])
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         
         // ========== SECTION 11: CREATE OR JOIN ROOM ==========
-        if (username == "alice") {
-            std::cout << "👸 Creating room R1..." << std::endl;
-            gameClient.createRoom();
-        } else {
-            std::cout << "👑 Joining room R1..." << std::endl;
-            gameClient.joinRoom("R1");
-        }
+        if (!isReconnected) {
+    if (username == "alice") {
+        std::cout << "👸 Creating room R1..." << std::endl;
+        gameClient.createRoom();
+    } else {
+        std::cout << "👑 Joining room R1..." << std::endl;
+        gameClient.joinRoom("R1");
+    }
+} else {
+    std::cout << "🎮 Already in game " << gameIdAfterReconnect << ", waiting for board state..." << std::endl;
+}
+
+std::this_thread::sleep_for(std::chrono::milliseconds(500));
         
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
@@ -257,7 +298,6 @@ int main(int argc, char* argv[])
         while (true)
         {
             int key = cv::waitKey(50) & 0xFF;           
-            engine.update(50);
             redraw();
             
             if (key == 27) break;  // ESC

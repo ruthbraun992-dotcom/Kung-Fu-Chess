@@ -17,6 +17,7 @@ void RealTimeArbiter::startJump(Position at, Piece piece, long durationMs) {
 
 
 std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
+    std::cout << "DEBUG: advanceTime() called" << std::endl;
     now_ += ms;
     std::vector<CaptureEvent> captured;
     std::vector<Position> capturedPositions; 
@@ -54,8 +55,22 @@ std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
                 auto existing = board.getCell(to.row, to.col);
                 if (existing.has_value())
                 {
+                      std::cout << "CAPTURE DETECTED: "
+              << "captured type="
+              << static_cast<int>(existing->type())
+              << " color="
+              << static_cast<int>(existing->color())
+              << std::endl;
+
                     captured.push_back({*existing, landedPiece, to});
                     capturedPositions.push_back(to);  
+               if(existing->type() == Piece::Type::KING)
+    {
+        std::cout << "GAME OVER! "
+                  << "Winner color="
+                  << static_cast<int>(landedPiece.color())
+                  << std::endl;
+    }
                 }
                 int lastRow = (landedPiece.color() == Piece::Color::WHITE) ? 0 : board.rows() - 1;
                 if (landedPiece.type() == Piece::Type::PAWN && to.row == lastRow) {
@@ -68,7 +83,7 @@ std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
 
             landedPiece.setState(nextState);
             board.setCell(to.row, to.col, landedPiece);
-
+            // bus_.publish(MotionFinishedEvent{to,landedPiece});
             if (nextState != PieceState::IDLE) {
                 pending.push_back({to, landedPiece, nextState});
             }

@@ -107,6 +107,19 @@ auto existing = users_.findByUsername(username);
     auto reconnect = games_.tryReconnect(username, sessionId);
     if (reconnect) {
         cancelDisconnectTimeout(reconnect->gameId);
+        
+        std::cout << "🔄 RECONNECTED session=" << sessionId 
+                  << " game=" << reconnect->gameId << std::endl;
+        
+        auto engine = games_.getEngineForSession(sessionId);
+        if (engine) {
+            std::cout << "📊 Sending board after reconnect" << std::endl;
+            games_.broadcastBoardState(
+                reconnect->gameId,
+                [this](int sid, const std::string& msg) { sendToSession(sid, msg); }
+            );
+        }
+        
         json toOpponent = { {"type","opponentReconnected"} };
         sendToSession(reconnect->opponentSessionId, toOpponent.dump());
 
@@ -185,7 +198,21 @@ if (piece->color() != *playerColor)
     toRow,
     toCol
     );
-
+if (ok)
+{
+        std::cout << "[SERVER] requestMove OK, calling update()" << std::endl;
+ auto captures = engine->update(666);
+  std::cout << "[SERVER] update() returned, captures: " << captures.size() << std::endl;
+    auto gameId = games_.getGameIdForSession(sessionId);
+    if (gameId)
+    {
+        games_.broadcastBoardState(*gameId,
+            [this](int sid, const std::string& msg)
+            {
+                sendToSession(sid, msg);
+            });
+    }
+}
     return json{
         {"type","moveResult"},
         {"success",ok}
@@ -193,6 +220,15 @@ if (piece->color() != *playerColor)
 }
 if (action == "play") {
     auto username = sessions_.getUsername(sessionId);
+
+     auto existingGame = games_.getGameIdForSession(sessionId);
+    if (existingGame) {
+        return json{ 
+            {"type","error"}, 
+            {"message","already_in_game"},
+            {"gameId", *existingGame}
+        }.dump();
+    }
     auto user = users_.findByUsername(*username);
 
     WaitingPlayer player{sessionId, user->id, user->username, user->elo};
@@ -222,6 +258,15 @@ if (action == "play") {
     auto username = sessions_.getUsername(sessionId);
     if (!username) return json{ {"type","error"}, {"message","not_logged_in"} }.dump();
 
+    auto existingGame = games_.getGameIdForSession(sessionId);
+    if (existingGame) {
+        return json{ 
+            {"type","error"}, 
+            {"message","already_in_game"},
+            {"gameId", *existingGame}
+        }.dump();
+    }
+
     std::string roomId = rooms_.createRoom(sessionId, *username);
     return json{ {"type","roomCreated"}, {"roomId", roomId} }.dump();
 }
@@ -230,9 +275,19 @@ if (action == "joinRoom") {
     auto username = sessions_.getUsername(sessionId);
     if (!username) return json{ {"type","error"}, {"message","not_logged_in"} }.dump();
 
+    
+    sauto existingGame = games_.getGameIdForSession(sessionId);
+    if (existingGame) {
+        return json{ 
+            {"type","error"}, 
+            {"message","already_in_game"},
+            {"gameId", *existingGame}
+        }.dump();
+    }
+
     std::string roomId = j.at("roomId").get<std::string>();
     auto result = rooms_.joinRoom(roomId, sessionId, *username);
-
+    
     if (result == RoomManager::JoinResult::RoomNotFound) {
         return json{ {"type","joinRoomResult"}, {"success",false}, {"reason","room_not_found"} }.dump();
     }
@@ -287,8 +342,17 @@ void WebSocketServer::sendToSession(int sessionId, const std::string& payload) {
     try {
         ConnectionHdl hdl = sessions_.getHandle(sessionId);
         LOG_SEND(sessionId, payload);           // <-- לוג גם broadcast
+        std::cout << "SEND JSON: " << payload << std::endl;
+        if (payload.find("gameOver") != std::string::npos)
+{
+    std::cout << "[GAMEOVER MESSAGE SENT] "
+              << payload
+              << std::endl;
+}
         server_.send(hdl, payload, websocketpp::frame::opcode::text);
-    } catch (const std::exception&) {}
+    } catch (const std::exception&) {
+        std::cout << "SEND ERROR: " << e.what() << std::endl;
+    }
 }
 
 void WebSocketServer::startMatchmakingTimeout(int sessionId) {
@@ -355,7 +419,9 @@ void WebSocketServer::startGameLoop()
             if (ec)
                 return;
 
+            std::cout << "[SERVER LOOP] Calling games_.update(50)" << std::endl;
             games_.update(50);
+std::cout << "[SERVER LOOP] games_.update(50) completed" << std::endl;
 
             startGameLoop();
         });

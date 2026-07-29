@@ -49,3 +49,9 @@ struct MotionStartedEvent {
     Piece piece;
     long durationMs;
 };
+
+struct MotionFinishedEvent
+{
+    Position at;
+    Piece piece;
+};
