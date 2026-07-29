@@ -78,8 +78,17 @@ file(GLOB SERVER_SOURCES CONFIGURE_DEPENDS
     Server/*.cpp
 )
 
-add_executable(server_app
-    ${SERVER_SOURCES}
+file(GLOB_RECURSE LOGIC_SOURCES Logic/**/*.cpp)
+
+add_executable(server_app 
+    Server/main.cpp
+    ${LOGIC_SOURCES}
+)
+
+target_include_directories(server_app PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Logic
+    ${CMAKE_CURRENT_SOURCE_DIR}/Common
 )
 
 target_include_directories(server_app PRIVATE
