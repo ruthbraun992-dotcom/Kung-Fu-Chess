@@ -143,36 +143,6 @@ std::optional<long> GameEngine::stateDurationOf(const Position& from) const
     return arbiter_.stateDurationOf(from);
 }
 
-void GameEngine::updateBoardFromServer(const json& boardStateJson) {
-  std::cout << "Updating board from server..." << std::endl;
-   for (int row = 0; row < board_.rows(); ++row) {
-        for (int col = 0; col < board_.cols(); ++col) {
-            board_.setCell(row, col, std::nullopt);
-        }
-    }
-    
-    // Rebuild board from server state
-    for (const auto& cellJson : boardStateJson.value("pieces", json::array())) {
-        int row = cellJson.value("row", -1);
-        int col = cellJson.value("col", -1);
-        std::string colorStr = cellJson.value("color", "");
-        int typeInt = cellJson.value("type", -1);
-        std::cout
-    << row << ","
-    << col << " "
-    << colorStr
-    << " "
-    << typeInt
-    << std::endl;
-        if (row >= 0 && col >= 0 && typeInt >= 0) {
-            Piece::Color color = (colorStr == "WHITE") ? Piece::Color::WHITE : Piece::Color::BLACK;
-            Piece::Type type = static_cast<Piece::Type>(typeInt);
-            
-            board_.setCell(row, col, Piece(color, type));
-        }
-    }
-}
-
 void GameEngine::startMotion(const Motion& motion)
 {
     arbiter_.startMotion(motion);
@@ -185,3 +155,55 @@ void GameEngine::startMotion(const Motion& motion)
     });
 }
 
+void GameEngine::applyServerMove(
+    int fromRow,
+    int fromCol,
+    int toRow,
+    int toCol)
+{
+    Position from{fromRow, fromCol};
+    Position to{toRow, toCol};
+
+    auto piece = board_.getCell(fromRow, fromCol);
+
+    if (!piece.has_value())
+    {
+        std::cout << "[CLIENT] No piece for server move\n";
+        return;
+    }
+
+
+    int distance = std::max(
+        std::abs(toRow - fromRow),
+        std::abs(toCol - fromCol)
+    );
+
+
+    const auto& moveCfg =
+        configs_.get(
+            piece->color(),
+            piece->type(),
+            PieceState::MOVE
+        );
+
+
+    long durationMs =
+        (moveCfg.speedMetersPerSec > 0.0)
+        ? static_cast<long>(
+            (distance / moveCfg.speedMetersPerSec) * 1000.0
+          )
+        : distance * 100L;
+
+
+    Motion motion{
+        from,
+        to,
+        *piece,
+        PieceState::MOVE,
+        0,
+        durationMs
+    };
+
+
+    startMotion(motion);
+}

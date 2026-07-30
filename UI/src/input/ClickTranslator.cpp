@@ -4,10 +4,7 @@
 
 std::optional<Position> ClickTranslator::pixelToCell(int x, int y) const
 {
-    const int boardMarginX = 114;
-    const int boardMarginY = 114;
-
-    const int localX = x - offsetX_ - BOARD_MARGIN_X;
+       const int localX = x - offsetX_ - BOARD_MARGIN_X;
     const int localY = y - offsetY_ - BOARD_MARGIN_Y;
 
     if (localX < 0 || localY < 0)

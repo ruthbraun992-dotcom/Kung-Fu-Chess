@@ -331,12 +331,32 @@ json GameManager::createBoardState(const GameEngine& engine)
             if (!piece.has_value())
                 continue;
 
-            boardState["pieces"].push_back({
-                {"row", row},
-                {"col", col},
+            auto renderPos   = engine.currentPositionOf({row, col});
+            auto state       = engine.currentStateOf({row, col});
+            auto stateStart  = engine.stateStartTimeOf({row, col});
+            auto duration    = engine.stateDurationOf({row, col});
+            long now         = engine.currentTime();
+
+            json pieceJson = {
+                {"row", row}, {"col", col},
                 {"color", piece->color() == Piece::Color::WHITE ? "WHITE" : "BLACK"},
                 {"type", static_cast<int>(piece->type())}
-            });
+            };
+
+            if (renderPos.has_value())
+            {
+                pieceJson["renderRow"] = renderPos->row;
+                pieceJson["renderCol"] = renderPos->col;
+            }
+            if (state.has_value())
+                pieceJson["state"] = static_cast<int>(state.value());
+            if (duration.has_value())
+                pieceJson["stateDuration"] = duration.value();
+            if (stateStart.has_value())
+                pieceJson["stateElapsed"] = now - stateStart.value();
+
+            boardState["pieces"].push_back(pieceJson);
+                        
         }
     }
 

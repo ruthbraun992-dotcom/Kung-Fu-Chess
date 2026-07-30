@@ -6,14 +6,14 @@
 #include "sprites/SpriteManager.hpp"
 #include "model/Board.hpp"
 #include "position.hpp"
-#include "engine/GameEngine.hpp"
+#include "../../../Common/ClientAnimationState.hpp"
 #include "RenderPosition.hpp"
 
 class BoardRenderer
 {
 public:
-    BoardRenderer(int rows, int cols, int cellSize, const SpriteManager& sprites,
-                  int offsetX, int offsetY, const GameEngine& engine);
+    BoardRenderer(int rows, int cols, int cellSize, const SpriteManager& sprites,const ClientAnimationState& animState,
+                  int offsetX, int offsetY);
 
     void setSelectedCell(const std::optional<Position>& selected);
     void draw(const cv::Mat& boardImage, const Board& board, cv::Mat& out) const;
@@ -24,7 +24,7 @@ private:
     int cellSize_;
     int offsetX_;
     int offsetY_;
-    const GameEngine& engine_;
+    const ClientAnimationState& engine_;
     const SpriteManager& sprites_;
 
     std::optional<Position> selectedCell_;

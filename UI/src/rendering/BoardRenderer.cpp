@@ -5,10 +5,11 @@
 
 BoardRenderer::BoardRenderer(int rows, int cols, int cellSize,
                               const SpriteManager& sprites,
-                              int offsetX, int offsetY, const GameEngine& engine)
+                              const ClientAnimationState& animState,
+                              int offsetX, int offsetY)
 : rows_(rows), cols_(cols), cellSize_(cellSize),
   offsetX_(offsetX), offsetY_(offsetY),
-  engine_(engine), sprites_(sprites) {}
+   sprites_(sprites),engine_(animState) {}
 
 void BoardRenderer::setSelectedCell(const std::optional<Position>& selected)
 {

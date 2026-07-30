@@ -45,8 +45,3 @@ target_compile_definitions(kungfu_chess PRIVATE
     ASIO_STANDALONE
     _WEBSOCKETPP_CPP11_STL_
 )
-
-# Add GameClient source
-target_sources(kungfu_chess PRIVATE
-    src/networking/GameClient.cpp
-)

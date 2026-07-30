@@ -19,6 +19,7 @@ public:
       bus_(bus)
 {}
     bool requestMove(int fromRow, int fromCol, int toRow, int toCol);
+    void applyServerMove(int fromRow,int fromCol,int toRow, int toCol);
     bool requestJump(int row, int col);
     void printBoard(std::ostream& out) const { board_.Printer(out); }
     const Board& board() const { return board_; }
@@ -31,7 +32,6 @@ public:
     const GameStats& stats() const { return stats_; }
     std::optional<long> stateStartTimeOf(const Position& from) const; 
     std::optional<long> stateDurationOf(const Position& from) const;
-    void updateBoardFromServer(const json& boardStateJson);
     void startMotion(const Motion& motion);
 private:
     Board board_;

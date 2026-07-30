@@ -32,7 +32,7 @@ target_include_directories(sqlite3_lib PUBLIC
 # ==========================================================
 
 file(GLOB_RECURSE LOGIC_SOURCES CONFIGURE_DEPENDS
-    Logic/*.cpp
+    ${CMAKE_SOURCE_DIR}/Server/Logic/*.cpp
     Common/*.cpp
 )
 
@@ -42,15 +42,15 @@ add_library(chess_lib
 
 target_include_directories(chess_lib PUBLIC
 
-    ${CMAKE_SOURCE_DIR}/Logic
+    ${CMAKE_SOURCE_DIR}/Server/Logic
     ${CMAKE_SOURCE_DIR}/Common
 
-    ${CMAKE_SOURCE_DIR}/Logic/rules
-    ${CMAKE_SOURCE_DIR}/Logic/engine
-    ${CMAKE_SOURCE_DIR}/Logic/realtime
-    ${CMAKE_SOURCE_DIR}/Logic/stats
-    ${CMAKE_SOURCE_DIR}/Logic/animation
-    ${CMAKE_SOURCE_DIR}/Logic/events
+    ${CMAKE_SOURCE_DIR}/Server/Logic/rules
+    ${CMAKE_SOURCE_DIR}/Server/Logic/engine
+    ${CMAKE_SOURCE_DIR}/Server/Logic/realtime
+    ${CMAKE_SOURCE_DIR}/Server/Logic/stats
+    ${CMAKE_SOURCE_DIR}/Server/Logic/animation
+    ${CMAKE_SOURCE_DIR}/Server/Logic/events
 
     ${CMAKE_SOURCE_DIR}/Server
 
@@ -78,16 +78,16 @@ file(GLOB SERVER_SOURCES CONFIGURE_DEPENDS
     Server/*.cpp
 )
 
-file(GLOB_RECURSE LOGIC_SOURCES Logic/**/*.cpp)
-
+# file(GLOB_RECURSE LOGIC_SOURCES
+#     Server/Logic/**/*.cpp
+# )
 add_executable(server_app 
     Server/main.cpp
-    ${LOGIC_SOURCES}
 )
 
 target_include_directories(server_app PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Logic
+    ${CMAKE_CURRENT_SOURCE_DIR}/Server/Logic
     ${CMAKE_CURRENT_SOURCE_DIR}/Common
 )
 
@@ -132,7 +132,7 @@ target_include_directories(unit_tests PRIVATE
 
     ${CMAKE_SOURCE_DIR}
 
-    ${CMAKE_SOURCE_DIR}/Logic
+    # ${CMAKE_SOURCE_DIR}/Logic
     ${CMAKE_SOURCE_DIR}/Common
 
     ${CMAKE_SOURCE_DIR}/Server
