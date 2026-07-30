@@ -7,6 +7,7 @@
 #include "animation/AnimationConfigLoader.hpp"
 #include "PieceState.hpp"
 #include "CaptureEvent.hpp"
+#include "Events.hpp"
 
 #include <vector>
 #include <optional>
@@ -18,7 +19,8 @@ public:
     void startMotion(Motion m);
     void startJump(Position at, Piece piece, long durationMs);
 
-    std::vector<CaptureEvent> advanceTime(long ms, Board& board);
+    std::vector<CaptureEvent> advanceTime(long ms, Board& board,std::vector<MotionFinishedEvent>* finishedOut = nullptr,
+    std::vector<MotionStartedEvent>* startedOut = nullptr);
 
     bool hasActiveMotionFrom(const Position& from) const;
     bool conflictsWithActiveMotion(const Position& from, const Position& to) const;
@@ -31,6 +33,7 @@ public:
     bool RealTimeArbiter::hasActiveMotionTo(const Position& pos) const;
 
 private:
+
     struct ActiveMotion {
         Motion motion;
         long arrivalAt;
@@ -38,10 +41,13 @@ private:
     struct ActiveJump {
         Position at;
         Piece piece;
+        
+         long startTime;
+        long durationMs;
         long arrivalAt;
     };
 
-   void startFollowUpState(const Position& at, Piece piece, PieceState state);
+   Motion startFollowUpState(const Position& at, Piece piece, PieceState state);
 
     const AnimationConfigLoader& configs_;
     long now_ = 0;

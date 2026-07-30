@@ -59,7 +59,6 @@ void GameClient::onClose(ConnectionHdl hdl) {
 void GameClient::onMessage(ConnectionHdl hdl, WsClient::message_ptr msg)
 {
     const std::string& message = msg->get_payload();
-    std::cout << "[UI] 📨 Message received: " << message << std::endl;
 
     try
     {
@@ -72,12 +71,36 @@ void GameClient::onMessage(ConnectionHdl hdl, WsClient::message_ptr msg)
                 onBoardStateUpdate(msgJson);
             }
         }
-    if (msgJson.value("type", "") == "pieceMove")
+    if (msgJson.value("type", "") == "pieceMotion")
     {
-        if (onPieceMove)
+        if (onPieceMotion)
         {
-            onPieceMove(msgJson);
+            onPieceMotion(msgJson);
         }
+    }
+    if (msgJson.value("type", "") == "scoreUpdate")
+    {
+        if (onScoreUpdate)
+            onScoreUpdate(msgJson);
+    }
+if (msgJson.value("type", "") == "moveResult")
+{
+    if (onMoveResult)
+        onMoveResult(msgJson);
+}if(msgJson.value("type","")=="jumpResult")
+{
+    if(onJumpResult)
+        onJumpResult(msgJson);
+}
+if(msgJson.value("type","") == "pieceJump")
+{std::cout << "CLIENT GOT PIECE JUMP" << std::endl;
+    if(onPieceJump)
+        onPieceJump(msgJson);
+}
+    if (msgJson.value("type", "") == "moveLogged")
+    {
+        if (onMoveLogged)
+            onMoveLogged(msgJson);
     }
         if (onMessageReceived)
         {
@@ -132,4 +155,22 @@ void GameClient::sendMove(int fromRow, int fromCol, int toRow, int toCol) {
 
 void GameClient::disconnect() {
     client_.close(connectionHdl_, websocketpp::close::status::normal, "");
+}
+void GameClient::sendJump(int row,int col)
+{
+    json msg{
+        {"action","jump"},
+        {"position",
+            {
+                {"row",row},
+                {"col",col}
+            }
+        }
+    };
+
+    client_.send(
+        connectionHdl_,
+        msg.dump(),
+        websocketpp::frame::opcode::text
+    );
 }

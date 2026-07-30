@@ -9,8 +9,8 @@
 #include "input/Controller.hpp"
 #include "rendering/MovesLogRenderer.hpp"
 #include "networking/GameClient.hpp"
-#include "../../server/Logic/events/EventBus.hpp"
 
+#include <mutex>
 #include <filesystem>
 #include <optional>
 #include <vector>
@@ -91,12 +91,14 @@ int main(int argc, char* argv[])
         // ========== SECTION 3: SETUP GAME ENGINE (LOCAL) ==========
         Board board(8, 8);
         setupStartingPosition(board);
-        EventBus bus;
+
         AnimationConfigLoader animConfigs(spriteDir.string());
 
         // ========== SECTION 4: CREATE GAME CLIENT ==========
         ClientAnimationState animState;
+        ClientGameStats clientStats;
         GameClient gameClient;
+        std::mutex gameMutex;
         // ========== SECTION 5: CREATE CONTROLLER ==========
         Controller controller(gameClient);
 
@@ -112,10 +114,60 @@ int main(int argc, char* argv[])
         ClickTranslator translator(8, 8, cellSize, offsetX + logColWidth, offsetY);
         MouseHandler mouse(translator);
 
+         // ========== SECTION: REDRAW FUNCTION ==========
+        auto redraw = [&]()
+        {
+            std::lock_guard<std::mutex> lock(gameMutex);
+
+            if (false)//TO DOOOOOO
+            {
+                canvas = gameOverImage.get_mat().clone();
+            }
+            else
+            {
+                renderer.setSelectedCell(controller.getSelected());
+                renderer.draw(img, board, canvas);
+            }
+
+            cv::Mat blackPart = logRenderer.renderColumn(clientStats, Piece::Color::BLACK);
+            cv::Mat whitePart = logRenderer.renderColumn(clientStats, Piece::Color::WHITE);
+
+            auto matchHeight = [&](cv::Mat& m) {
+                if (m.rows != canvas.rows)
+                    cv::resize(m, m, cv::Size(m.cols, canvas.rows));
+            };
+            matchHeight(blackPart);
+            matchHeight(whitePart);
+
+            auto to4ch = [&](cv::Mat& m) {
+                if (canvas.channels() == 4 && m.channels() == 3)
+                {
+                    cv::Mat converted;
+                    cv::cvtColor(m, converted, cv::COLOR_BGR2BGRA);
+                    m = converted;
+                }
+            };
+            to4ch(blackPart);
+            to4ch(whitePart);
+
+            cv::Mat combined;
+            cv::hconcat(blackPart, canvas, combined);
+            cv::hconcat(combined, whitePart, combined);
+
+            cv::imshow("Kung Fu Chess - " + username, combined);
+        };
+        
+
+
 // ========== SECTION 7: SETUP MESSAGE HANDLER ==========
 gameClient.onBoardStateUpdate = [&](const json& boardState) {
-    std::cout << "📊 Board state updated from server" << std::endl;
-    animState.updateFromMessage(boardState);
+
+    std::lock_guard<std::mutex> lock(gameMutex);
+
+animState.updateFromMessage(boardState);
+
+board.clear();
+
     for (const auto& p : boardState["pieces"])
     {
         int row = p["row"];
@@ -124,31 +176,69 @@ gameClient.onBoardStateUpdate = [&](const json& boardState) {
         Piece::Type  type  = static_cast<Piece::Type>(p["type"].get<int>());
         board.setCell(row, col, Piece(color, type));
     }
- std::cout << "✅ Board synced" << std::endl;
 
 };
 
-gameClient.onPieceMove = [&](const json& msg) {
+gameClient.onPieceMotion = [&](const json& msg) {
+        std::lock_guard<std::mutex> lock(gameMutex);
+
     std::cout << "[ANIMATION] 🎬 Received pieceMove from server!" << std::endl;
-    
-    try {
+std::cout 
+    << "STATE RECEIVED = "
+    << msg["state"].get<int>()
+    << std::endl;
+        try {
         int fromRow = msg.at("from").at("row");
         int fromCol = msg.at("from").at("col");
         int toRow = msg.at("to").at("row");
         int toCol = msg.at("to").at("col");
         long duration = msg.at("duration");
+        PieceState state = msg.contains("state")
+            ? static_cast<PieceState>(msg.at("state").get<int>())
+            : PieceState::MOVE;
 
         
         std::cout << "[ANIMATION] Moving piece from (" 
                   << fromRow << "," << fromCol << ") to (" 
                   << toRow << "," << toCol << ")" << std::endl;
         
-         animState.startMotion({fromRow, fromCol}, {toRow, toCol}, duration);
+         animState.startMotion({fromRow, fromCol}, {toRow, toCol}, state, duration);
     } catch (const std::exception& e) {
         std::cout << "[ANIMATION] ❌ Error parsing pieceMove: " << e.what() << std::endl;
     }
 };
+gameClient.onPieceJump = [&](const json& msg)
+{
+    
+    std::cout << "JUMP RECEIVED" << std::endl;
+    int row = msg["row"];
+    int col = msg["col"];
+    long duration = msg.contains("duration") ? msg["duration"].get<long>() : 400;
 
+    Piece::Color color = (msg["piece"]["color"].get<std::string>() == "WHITE")
+        ? Piece::Color::WHITE : Piece::Color::BLACK;
+    Piece::Type type = static_cast<Piece::Type>(msg["piece"]["type"].get<int>());
+    Piece piece(color, type);
+
+    std::cout
+        << "[ANIMATION] Jump at "
+        << row << ","
+        << col
+        << std::endl;
+
+    animState.startJump({row, col}, piece, duration);
+
+    redraw();
+};
+gameClient.onScoreUpdate = [&](const json& msg) {
+    Piece::Color color = (msg["color"] == "WHITE") ? Piece::Color::WHITE : Piece::Color::BLACK;
+    clientStats.updateScore(color, msg["score"].get<int>());
+};
+
+gameClient.onMoveLogged = [&](const json& msg) {
+    Piece::Color color = (msg["color"] == "WHITE") ? Piece::Color::WHITE : Piece::Color::BLACK;
+    clientStats.addMoveLine(color, msg["move"].get<std::string>());
+};
     gameClient.onMessageReceived = [&](const json& msg) {
             std::string type = msg.value("type", "");
             
@@ -193,7 +283,15 @@ gameClient.onPieceMove = [&](const json& msg) {
                 std::cout << "🏁 GAME OVER! Winner: " << winner << std::endl;
             }
         };
+gameClient.onMoveResult =
+[&](const json& msg)
+{
+    bool success = msg.value("success", false);
 
+    controller.onMoveResult(success);
+
+    redraw();
+};
         // ========== SECTION 8: CONNECT TO SERVER ==========
         std::cout << "🔗 Connecting to server..." << std::endl;
         if (!gameClient.connect("ws://localhost:9002")) {
@@ -231,48 +329,7 @@ std::this_thread::sleep_for(std::chrono::milliseconds(500));
         
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-        // ========== SECTION 12: REDRAW FUNCTION ==========
-        auto redraw = [&]()
-        {
-            if (false)//TO DOOOOOO
-            {
-                canvas = gameOverImage.get_mat().clone();
-            }
-            else
-            {
-                renderer.setSelectedCell(controller.getSelected());
-                renderer.draw(img, board, canvas);
-            }
-
-            // cv::Mat blackPart = logRenderer.renderColumn(engine.stats(), Piece::Color::BLACK);
-            // cv::Mat whitePart = logRenderer.renderColumn(engine.stats(), Piece::Color::WHITE);
-
-            // auto matchHeight = [&](cv::Mat& m) {
-            //     if (m.rows != canvas.rows)
-            //         cv::resize(m, m, cv::Size(m.cols, canvas.rows));
-            // };
-            // matchHeight(blackPart);
-            // matchHeight(whitePart);
-
-            // auto to4ch = [&](cv::Mat& m) {
-            //     if (canvas.channels() == 4 && m.channels() == 3)
-            //     {
-            //         cv::Mat converted;
-            //         cv::cvtColor(m, converted, cv::COLOR_BGR2BGRA);
-            //         m = converted;
-            //     }
-            // };
-            // to4ch(blackPart);
-            // to4ch(whitePart);
-
-            // cv::Mat combined;
-            // cv::hconcat(blackPart, canvas, combined);
-            // cv::hconcat(combined, whitePart, combined);
-
-           cv::imshow("Kung Fu Chess - " + username, canvas);
-           // cv::imshow("Kung Fu Chess - " + username, combined);
-        };
-        
+       
         // ========== SECTION 13: MOUSE HANDLERS ==========
         mouse.setOnClick([&](const Position& pos) {
             controller.click(pos);
@@ -280,7 +337,7 @@ std::this_thread::sleep_for(std::chrono::milliseconds(500));
         });
         
         mouse.setOnRightClick([&](const Position& pos) {
-            // controller.jump(pos);
+            controller.jump(pos);
             redraw();
         });
         

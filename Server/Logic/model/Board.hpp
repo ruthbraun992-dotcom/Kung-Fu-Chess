@@ -14,6 +14,7 @@ public:
 
     void setCell(int row, int col, std::optional<Piece> piece);
     std::optional<Piece> getCell(int row, int col) const;
+    void clear();
 
     int rows() const;
     int cols() const;

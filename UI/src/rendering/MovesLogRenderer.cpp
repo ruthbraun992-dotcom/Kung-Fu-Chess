@@ -1,4 +1,5 @@
 #include "MovesLogRenderer.hpp"
+#include "Common/Position.hpp"
 #include <sstream>
 #include <iomanip>
 
@@ -40,8 +41,7 @@ std::string MovesLogRenderer::pieceCode(Piece::Color color, Piece::Type type) co
     return colorCode + code;
 }
 
-
-cv::Mat MovesLogRenderer::renderColumn(const GameStats& stats, Piece::Color color) const
+cv::Mat MovesLogRenderer::renderColumn(const ClientGameStats& stats, Piece::Color color) const
 {
     cv::Mat canvas(height_, width_, CV_8UC3, cv::Scalar(255, 255, 255));
 
@@ -55,15 +55,8 @@ cv::Mat MovesLogRenderer::renderColumn(const GameStats& stats, Piece::Color colo
 
     int y = headerHeight_ + scoreHeight_;
 
-    for (const auto& mv : stats.moves())
+    for (const auto& line : stats.linesFor(color))
     {
-        if (mv.color != color) continue;
-
-        std::string line = formatTime(mv.timestampMs) + "  " +
-                            pieceCode(mv.color, mv.pieceType) + "  " +
-                            squareNotation(mv.from) + "->" + squareNotation(mv.to) +
-                            (mv.isJump ? " (jump)" : "");
-
         if (y + rowHeight_ < height_)
         {
             cv::putText(canvas, line, cv::Point(10, y), cv::FONT_HERSHEY_SIMPLEX, 0.45, cv::Scalar(0, 0, 0), 1);

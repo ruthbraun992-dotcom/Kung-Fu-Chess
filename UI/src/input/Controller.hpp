@@ -11,7 +11,9 @@ public:
     Controller(GameClient& client);
 
     void click(const Position& cell);
+    void jump(const Position& cell);
     void clickOutside();
+    void onMoveResult(bool success);
 
     std::optional<Position> getSelected() const;
 

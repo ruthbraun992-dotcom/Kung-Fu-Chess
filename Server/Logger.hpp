@@ -17,7 +17,6 @@ public:
         std::lock_guard<std::mutex> lock(mutex_);
         std::string entry = "[" + timestamp() + "] [" + direction + "] session=" +
                             std::to_string(sessionId) + " " + message;
-        std::cout << entry << "\n";
         if (file_.is_open()) file_ << entry << "\n" << std::flush;
     }
 

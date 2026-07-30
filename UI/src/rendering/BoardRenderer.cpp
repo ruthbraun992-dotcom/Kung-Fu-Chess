@@ -21,7 +21,10 @@ void BoardRenderer::draw(const cv::Mat& boardImage,
                          cv::Mat& out) const
 {
     if (boardImage.empty())
-        return;
+       {
+    std::cout << "EMPTY BOARD IMAGE!" << std::endl;
+    return;
+}
 
     out = cv::Mat( BOARD_PIXEL_SIZE, BOARD_PIXEL_SIZE, CV_8UC4, cv::Scalar(255, 255, 255, 255));
 
@@ -128,7 +131,12 @@ void BoardRenderer::draw(const cv::Mat& boardImage,
 
         cv::putText(out, number,cv::Point(x, y),  cv::FONT_HERSHEY_SIMPLEX, 0.6,  cv::Scalar(0, 0, 0),   2);
     }
+ 
 }
+
+
+
+
 void BoardRenderer::drawSprite(cv::Mat& canvas, const cv::Mat& sprite, double x, double y) const
 {
     if (sprite.empty()) return;

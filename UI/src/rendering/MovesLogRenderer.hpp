@@ -1,15 +1,14 @@
 #pragma once
 
 #include <opencv2/opencv.hpp>
-#include "stats/GameStats.hpp"
-
+#include "ClientGameStats.hpp"
+#include "Position.hpp"
 class MovesLogRenderer
 {
 public:
     MovesLogRenderer(int width, int height, int boardRows, int boardCols);
 
-    cv::Mat renderColumn(const GameStats& stats, Piece::Color color) const; 
-
+    cv::Mat renderColumn(const ClientGameStats& stats, Piece::Color color) const;
 private:
     std::string formatTime(long timestampMs) const;
     std::string squareNotation(Position pos) const;

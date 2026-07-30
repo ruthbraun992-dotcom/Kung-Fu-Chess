@@ -11,16 +11,17 @@ void RealTimeArbiter::startMotion(Motion m) {
 
 void RealTimeArbiter::startJump(Position at, Piece piece, long durationMs) {
     piece.setState(PieceState::JUMP);
-    jumps_.push_back(ActiveJump{at, piece, now_ + durationMs});
+    jumps_.push_back(ActiveJump{at, piece, now_, now_ + durationMs});
 }
 
-
-
-std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
-    std::cout << "DEBUG: advanceTime() called" << std::endl;
+std::vector<CaptureEvent> RealTimeArbiter::advanceTime(
+    long ms, Board& board,
+    std::vector<MotionFinishedEvent>* finishedOut,
+    std::vector<MotionStartedEvent>* startedOut)
+{
     now_ += ms;
     std::vector<CaptureEvent> captured;
-    std::vector<Position> capturedPositions; 
+    std::vector<Position> capturedPositions;
 
     struct PendingFollowUp { Position at; Piece piece; PieceState state; };
     std::vector<PendingFollowUp> pending;
@@ -39,7 +40,7 @@ std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
                     if (jump.at.row == to.row && jump.at.col == to.col &&
                         jump.piece.color() != it->motion.piece.color()) {
                         captured.push_back({it->motion.piece, jump.piece, to});
-                        capturedPositions.push_back(to);  
+                        capturedPositions.push_back(to);
                         caughtByJumper = true;
                         break;
                     }
@@ -55,22 +56,20 @@ std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
                 auto existing = board.getCell(to.row, to.col);
                 if (existing.has_value())
                 {
-                      std::cout << "CAPTURE DETECTED: "
-              << "captured type="
-              << static_cast<int>(existing->type())
-              << " color="
-              << static_cast<int>(existing->color())
-              << std::endl;
+                    std::cout << "CAPTURE DETECTED: "
+                              << "captured type=" << static_cast<int>(existing->type())
+                              << " color=" << static_cast<int>(existing->color())
+                              << std::endl;
 
                     captured.push_back({*existing, landedPiece, to});
-                    capturedPositions.push_back(to);  
-               if(existing->type() == Piece::Type::KING)
-    {
-        std::cout << "GAME OVER! "
-                  << "Winner color="
-                  << static_cast<int>(landedPiece.color())
-                  << std::endl;
-    }
+                    capturedPositions.push_back(to);
+
+                    if (existing->type() == Piece::Type::KING)
+                    {
+                        std::cout << "GAME OVER! Winner color="
+                                  << static_cast<int>(landedPiece.color())
+                                  << std::endl;
+                    }
                 }
                 int lastRow = (landedPiece.color() == Piece::Color::WHITE) ? 0 : board.rows() - 1;
                 if (landedPiece.type() == Piece::Type::PAWN && to.row == lastRow) {
@@ -83,7 +82,9 @@ std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
 
             landedPiece.setState(nextState);
             board.setCell(to.row, to.col, landedPiece);
-            // bus_.publish(MotionFinishedEvent{to,landedPiece});
+
+            if (finishedOut) finishedOut->push_back(MotionFinishedEvent{to, landedPiece});
+
             if (nextState != PieceState::IDLE) {
                 pending.push_back({to, landedPiece, nextState});
             }
@@ -101,6 +102,8 @@ std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
 
             Piece landed = it->piece;
             landed.setState(nextState);
+
+            if (finishedOut) finishedOut->push_back(MotionFinishedEvent{it->at, landed});
 
             if (nextState != PieceState::IDLE) {
                 pending.push_back({it->at, landed, nextState});
@@ -132,7 +135,8 @@ std::vector<CaptureEvent> RealTimeArbiter::advanceTime(long ms, Board& board) {
     }
 
     for (const auto& p : pending) {
-        startFollowUpState(p.at, p.piece, p.state);
+        Motion m = startFollowUpState(p.at, p.piece, p.state);
+        if (startedOut) startedOut->push_back(MotionStartedEvent{m.from, m.to, m.piece, m.state, m.durationMs});
     }
 
     return captured;
@@ -212,6 +216,14 @@ std::optional<long> RealTimeArbiter::stateStartTimeOf(const Position& from) cons
         if (active.motion.from.row == from.row && active.motion.from.col == from.col)
             return active.motion.startTime;
     }
+    for (const auto& j : jumps_)
+{
+    if(j.at.row == from.row &&
+       j.at.col == from.col)
+    {
+        return j.startTime;
+    }
+}
     return std::nullopt;
 }
 std::optional<long> RealTimeArbiter::stateDurationOf(const Position& from) const
@@ -221,6 +233,14 @@ std::optional<long> RealTimeArbiter::stateDurationOf(const Position& from) const
         if (active.motion.from.row == from.row && active.motion.from.col == from.col)
             return active.motion.durationMs;
     }
+    for (const auto& j : jumps_)
+{
+    if(j.at.row == from.row &&
+       j.at.col == from.col)
+    {
+        return j.durationMs;
+    }
+}
     return std::nullopt;
 }
 
@@ -236,7 +256,7 @@ bool RealTimeArbiter::hasActiveMotionTo(const Position& pos) const
 
     return false;
 }
-void RealTimeArbiter::startFollowUpState(
+Motion RealTimeArbiter::startFollowUpState(
     const Position& at,
     Piece piece,
     PieceState state)
@@ -263,4 +283,5 @@ piece,
         m,
         now_ + m.durationMs
     });
+     return m;
 }

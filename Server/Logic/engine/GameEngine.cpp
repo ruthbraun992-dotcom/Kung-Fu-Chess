@@ -44,7 +44,32 @@ if (arbiter_.conflictsWithActiveMotion(from, to)) return false;
 
 startMotion(motion);
 std::cout << "MOVE STARTED" << std::endl;
+std::cout << "AFTER START MOTION BOARD CHECK\n";
 
+auto p = board_.getCell(toRow, toCol);
+
+if (p.has_value())
+{
+    std::cout << "FOUND PIECE AT TARGET "
+              << "row=" << toRow
+              << " col=" << toCol
+              << std::endl;
+}
+else
+{
+    std::cout << "NO PIECE AT TARGET\n";
+}
+
+
+auto old = board_.getCell(fromRow, fromCol);
+
+if (old.has_value())
+{
+    std::cout << "PIECE STILL AT SOURCE "
+              << "row=" << fromRow
+              << " col=" << fromCol
+              << std::endl;
+}
 if (isGameOver())
 {
     std::cout << "🎯 DETECTED GAME OVER IN REQUEST MOVE" << std::endl;
@@ -73,6 +98,7 @@ bool GameEngine::requestJump(int row, int col) {
     if (durationMs < 1) durationMs = 1;   // מונע 0/0 (NaN) בהמשך
 
     arbiter_.startJump(pos, *piece, durationMs);
+    bus_.publish(JumpStartedEvent{pos, *piece, durationMs});    
     stats_.recordMove(piece->color(), piece->type(), pos, pos, /*isJump=*/true, arbiter_.currentTime());
     bus_.publish(MoveLoggedEvent{piece->color(), "Jump to " + pos.toString()});
     bus_.publish(SoundEvent{SoundType::Move});
@@ -81,7 +107,12 @@ bool GameEngine::requestJump(int row, int col) {
 
 void GameEngine::update(long ms)
 {
-    auto captured = arbiter_.advanceTime(ms, board_);
+    std::vector<MotionFinishedEvent> finished;
+std::vector<MotionStartedEvent> started;
+auto captured = arbiter_.advanceTime(ms, board_, &finished, &started);
+
+for (const auto& f : finished) bus_.publish(f);
+for (const auto& s : started)  bus_.publish(s);
     
  for (const auto c : captured)
     {
@@ -146,11 +177,17 @@ std::optional<long> GameEngine::stateDurationOf(const Position& from) const
 void GameEngine::startMotion(const Motion& motion)
 {
     arbiter_.startMotion(motion);
+    
+    if (motion.from == motion.to)
+    {
+        return;
+    }
 
     bus_.publish(MotionStartedEvent{
         motion.from,
         motion.to,
         motion.piece,
+        motion.state,
         motion.durationMs
     });
 }

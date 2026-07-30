@@ -31,3 +31,13 @@ void Board::Printer(std::ostream& out) const {
 }
 
 
+void Board::clear()
+{
+    for (auto& row : cells_)
+    {
+        for (auto& cell : row)
+        {
+            cell = std::nullopt;
+        }
+    }
+}

@@ -97,6 +97,9 @@ void AnimationConfigLoader::loadAll()
             }
         }
     }
+    std::cout << "TOTAL CONFIGS LOADED = "
+          << configs_.size()
+          << std::endl;
 }
 
 const AnimationConfig& AnimationConfigLoader::get(
@@ -108,10 +111,12 @@ const AnimationConfig& AnimationConfigLoader::get(
 
     auto it = configs_.find(key);
 
+    
     if (it == configs_.end())
     {
+         std::cout << "CONFIG MISSING!!!" << std::endl;
         throw std::runtime_error("Missing animation config: " + key);
     }
-
+    
     return it->second;
 }

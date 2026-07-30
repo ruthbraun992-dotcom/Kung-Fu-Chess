@@ -1,5 +1,6 @@
 // Server/WebSocketServer.cpp
 #include "WebSocketServer.hpp"
+#include <mutex>
 #include "../Logic/events/EventBus.hpp"
 #include "../Logic/events/Events.hpp"
 #include "PasswordHasher.hpp"
@@ -20,7 +21,8 @@ WebSocketServer::WebSocketServer(
     server_.init_asio();
 
     server_.set_reuse_addr(true);
-
+server_.clear_access_channels(websocketpp::log::alevel::all);
+server_.set_access_channels(websocketpp::log::alevel::connect | websocketpp::log::alevel::disconnect);
     server_.set_open_handler([this](ConnectionHdl hdl) { onOpen(hdl); });
     server_.set_close_handler([this](ConnectionHdl hdl) { onClose(hdl); });
     server_.set_message_handler([this](ConnectionHdl hdl, WsServer::message_ptr msg) {
@@ -72,6 +74,7 @@ void WebSocketServer::onMessage(ConnectionHdl hdl, WsServer::message_ptr msg) {
 }
 
 std::string WebSocketServer::handleMessage(int sessionId, const std::string& payload) {
+    std::lock_guard<std::mutex> lock(games_.mutex());
     try {
         json j = json::parse(payload);
         std::string action = j.at("action").get<std::string>();
@@ -114,6 +117,8 @@ auto existing = users_.findByUsername(username);
         auto engine = games_.getEngineForSession(sessionId);
         if (engine) {
             std::cout << "📊 Sending board after reconnect" << std::endl;
+            
+            std::cout << "BROADCAST BOARD STATE FROM: " << __FUNCTION__ << std::endl;
             games_.broadcastBoardState(
                 reconnect->gameId,
                 [this](int sid, const std::string& msg) { sendToSession(sid, msg); }
@@ -201,11 +206,10 @@ if (piece->color() != *playerColor)
 if (ok)
 {
         std::cout << "[SERVER] requestMove OK, calling update()" << std::endl;
- auto captures = engine->update(666);
-  std::cout << "[SERVER] update() returned, captures: " << captures.size() << std::endl;
+  //std::cout << "[SERVER] update() returned, captures: " << captures.size() << std::endl;
     auto gameId = games_.getGameIdForSession(sessionId);
     if (gameId)
-    {
+    {std::cout << "BROADCAST BOARD STATE FROM: " << __FUNCTION__ << std::endl;
         games_.broadcastBoardState(*gameId,
             [this](int sid, const std::string& msg)
             {
@@ -218,7 +222,63 @@ if (ok)
         {"success",ok}
     }.dump();
 }
-if (action == "play") {
+
+if (action == "jump")
+{
+    int row = j.at("position").at("row").get<int>();
+    int col = j.at("position").at("col").get<int>();
+
+    GameEngine* engine = games_.getEngineForSession(sessionId);
+
+    if (!engine)
+    {
+        return json{
+            {"type","jumpResult"},
+            {"success",false}
+        }.dump();
+    }
+
+
+    auto playerColor = games_.getPlayerColor(sessionId);
+
+    if (!playerColor)
+    {
+        return json{
+            {"type","jumpResult"},
+            {"success",false}
+        }.dump();
+    }
+
+
+    auto piece = engine->board().getCell(row,col);
+
+    if (!piece.has_value())
+    {
+        return json{
+            {"type","jumpResult"},
+            {"success",false},
+            {"reason","no_piece"}
+        }.dump();
+    }
+
+
+    if (piece->color() != *playerColor)
+    {
+        return json{
+            {"type","jumpResult"},
+            {"success",false},
+            {"reason","not_your_piece"}
+        }.dump();
+    }
+
+
+  bool ok = engine->requestJump(row,col);
+
+    return json{
+        {"type","jumpResult"},
+        {"success",ok}
+    }.dump();
+}if (action == "play") {
     auto username = sessions_.getUsername(sessionId);
 
      auto existingGame = games_.getGameIdForSession(sessionId);
@@ -276,7 +336,7 @@ if (action == "joinRoom") {
     if (!username) return json{ {"type","error"}, {"message","not_logged_in"} }.dump();
 
     
-    sauto existingGame = games_.getGameIdForSession(sessionId);
+    auto existingGame = games_.getGameIdForSession(sessionId);
     if (existingGame) {
         return json{ 
             {"type","error"}, 
@@ -342,7 +402,7 @@ void WebSocketServer::sendToSession(int sessionId, const std::string& payload) {
     try {
         ConnectionHdl hdl = sessions_.getHandle(sessionId);
         LOG_SEND(sessionId, payload);           // <-- לוג גם broadcast
-        std::cout << "SEND JSON: " << payload << std::endl;
+        
         if (payload.find("gameOver") != std::string::npos)
 {
     std::cout << "[GAMEOVER MESSAGE SENT] "
@@ -350,8 +410,8 @@ void WebSocketServer::sendToSession(int sessionId, const std::string& payload) {
               << std::endl;
 }
         server_.send(hdl, payload, websocketpp::frame::opcode::text);
-    } catch (const std::exception&) {
-        std::cout << "SEND ERROR: " << e.what() << std::endl;
+    } catch (const std::exception& e) {
+     
     }
 }
 
@@ -419,10 +479,15 @@ void WebSocketServer::startGameLoop()
             if (ec)
                 return;
 
-            std::cout << "[SERVER LOOP] Calling games_.update(50)" << std::endl;
             games_.update(50);
-std::cout << "[SERVER LOOP] games_.update(50) completed" << std::endl;
-
+            for (const auto& gameId : games_.getAllGameIds())
+                    {
+                        games_.broadcastBoardState(gameId,
+                            [this](int sid, const std::string& msg)
+                            {
+                                sendToSession(sid, msg);
+                            });
+                    }
             startGameLoop();
         });
 }

@@ -1,9 +1,18 @@
 #include "ClientAnimationState.hpp"
 #include <algorithm>
+#include <iostream>
 
-void ClientAnimationState::startMotion(const Position& from, const Position& to, long durationMs)
+void ClientAnimationState::startMotion(const Position& from, const Position& to, PieceState state, long durationMs)
 {
-    activeMotions_[from] = ActiveMotion{ from, to, currentTime(), durationMs };
+    std::cout
+    << "START MOTION state="
+    << static_cast<int>(state)
+    << " from="
+    << from.row << "," << from.col
+    << " to="
+    << to.row << "," << to.col
+    << std::endl;
+    activeMotions_[from] = ActiveMotion{ from, to, state, currentTime(), durationMs };
 }
 
 void ClientAnimationState::updateFromMessage(const nlohmann::json& msg)
@@ -30,6 +39,7 @@ void ClientAnimationState::updateFromMessage(const nlohmann::json& msg)
     }
 
     pieces_ = std::move(updated);
+    
 }
 
 std::optional<RenderPosition> ClientAnimationState::currentPositionOf(const Position& pos) const
@@ -60,8 +70,12 @@ std::optional<RenderPosition> ClientAnimationState::currentPositionOf(const Posi
 
 std::optional<PieceState> ClientAnimationState::currentStateOf(const Position& pos) const
 {
-    if (activeMotions_.count(pos))
-        return PieceState::MOVE;
+    auto mit = activeMotions_.find(pos);
+    if (mit != activeMotions_.end())
+        return mit->second.state;
+    if (activeJumps_.count(pos))
+        return PieceState::JUMP;
+
 
     auto it = pieces_.find(pos);
     return it != pieces_.end() ? it->second.state : std::nullopt;
@@ -72,6 +86,11 @@ std::optional<long> ClientAnimationState::stateStartTimeOf(const Position& pos) 
     auto mit = activeMotions_.find(pos);
     if (mit != activeMotions_.end())
         return mit->second.startTime;
+    auto jit = activeJumps_.find(pos);
+
+    if (jit != activeJumps_.end())
+        return jit->second.startTime;
+
 
     auto it = pieces_.find(pos);
     return it != pieces_.end() ? it->second.stateStartTime : std::nullopt;
@@ -82,15 +101,38 @@ std::optional<long> ClientAnimationState::stateDurationOf(const Position& pos) c
 {
      auto mit = activeMotions_.find(pos);
     if (mit != activeMotions_.end())
-        return mit->second.startTime;
+        return mit->second.durationMs;
+    auto jit = activeJumps_.find(pos);
+
+    if (jit != activeJumps_.end())
+        return jit->second.durationMs;
 
     auto it = pieces_.find(pos);
-    return it != pieces_.end() ? it->second.stateStartTime : std::nullopt;
+    return it != pieces_.end() ? it->second.stateDuration : std::nullopt;
 
 }
 
 long ClientAnimationState::currentTime() const
 {
     using namespace std::chrono;
-    return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+    return static_cast<long>(
+        duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
+}
+
+void ClientAnimationState::startJump(
+    const Position& pos,
+    const Piece& piece,
+    long duration)
+{
+    std::cout 
+    << "START JUMP "
+    << pos.row << ","
+    << pos.col
+    << std::endl;
+    activeJumps_.insert_or_assign(pos, ActiveJump{
+        pos,
+        piece,
+        currentTime(),
+        duration
+    });
 }

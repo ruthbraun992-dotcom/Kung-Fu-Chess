@@ -22,13 +22,20 @@ public:
     void createRoom();
     void joinRoom(const std::string& roomId);
     void sendMove(int fromRow, int fromCol, int toRow, int toCol);
+    void sendJump(int row, int col);
+
     
     // Callbacks
     std::function<void(const json&)> onMessageReceived;
     std::function<void()> onConnect;
     std::function<void()> onDisconnect;
     std::function<void(const json&)> onBoardStateUpdate;
-    std::function<void(const json&)> onPieceMove;
+    std::function<void(const json&)> onScoreUpdate;
+    std::function<void(const json&)> onMoveLogged;
+    std::function<void(const json&)> onMoveResult;
+    std::function<void(const json&)> onJumpResult;
+    std::function<void(const json&)> onPieceJump;
+    std::function<void(const json&)> onPieceMotion;
 
 private:
     void onOpen(ConnectionHdl hdl);

@@ -81,8 +81,15 @@ file(GLOB SERVER_SOURCES CONFIGURE_DEPENDS
 # file(GLOB_RECURSE LOGIC_SOURCES
 #     Server/Logic/**/*.cpp
 # )
-add_executable(server_app 
+add_executable(server_app
     Server/main.cpp
+    Server/GameManager.cpp
+    Server/MatchmakingQueue.cpp
+    Server/PasswordHasher.cpp
+    Server/RoomManager.cpp
+    Server/SessionManager.cpp
+    Server/UserRepository.cpp
+    Server/WebSocketServer.cpp
 )
 
 target_include_directories(server_app PRIVATE 

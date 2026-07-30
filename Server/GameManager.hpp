@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 #include <optional>
+#include <mutex>
 #include "GameEngine.hpp"
 #include "EventBus.hpp"
 #include "Piece.hpp"
@@ -41,8 +42,11 @@ public:
     void forfeitByUsername(const std::string& gameId, const std::string& disconnectedUsername);
     std::optional<Piece::Color> getPlayerColor(int sessionId) const;
     void update(long ms);
+    std::vector<std::string> getAllGameIds() const;
     void GameManager::broadcastBoardState(const std::string& gameId, const SendFn sendToSession);
     json GameManager::createBoardState(const GameEngine& engine);
+    void broadcast(const std::string& gameId, const std::string& message,SendFn sendToSession);
+    std::mutex& mutex() { return mutex_; }
 
 private:
     void registerEventHandlers(const std::string& gameId, const SendFn& sendToSession);
@@ -52,4 +56,5 @@ private:
     int nextGameId_ = 1;
     std::map<std::string, std::unique_ptr<GameSession>> games_;
     std::map<int, std::string> sessionToGame_;
+     std::mutex mutex_;
 };
