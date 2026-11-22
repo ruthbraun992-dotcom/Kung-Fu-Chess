@@ -132,6 +132,12 @@ for (int row = 0; row < 8; row++)
 }
 
 std::cout << "===== END BOARD CHECK =====\n";
+auto it = games_.find(gameId);
+
+if(it == games_.end() || it->second->gameOver)
+{
+    return;
+}
  broadcastBoardState(gameId, sendToSession);
     }
 );
@@ -187,7 +193,8 @@ std::cout << "===== END BOARD CHECK =====\n";
             sendToSession(it->second->whiteSessionId, payload);
             sendToSession(it->second->blackSessionId, payload);
 
-            endGame(gameId);
+            if (it != games_.end())
+            {it->second->gameOver = true;}
         }
     );
    
@@ -391,16 +398,24 @@ void GameManager::broadcastBoardState(
     SendFn sendToSession)
 {
 
+ auto it = games_.find(gameId);
 
-
-auto& session = *games_.at(gameId);
+    if (it == games_.end())
+    {
+        std::cout << "GAME NOT FOUND - skip board state\n";
+        return;
+    }
+   
+if(it->second->gameOver)
+    {
+        return;
+    }
+auto& session = *it->second;
 
     json boardState = createBoardState(*session.engine);
              
 
     sendToSession(session.whiteSessionId, boardState.dump());
-    
-
     sendToSession(session.blackSessionId, boardState.dump());
 
 }

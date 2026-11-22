@@ -62,6 +62,10 @@ std::vector<CaptureEvent> RealTimeArbiter::advanceTime(
                               << std::endl;
 
                     captured.push_back({*existing, landedPiece, to});
+                    std::cout 
+<< "CAPTURE: captured type="
+<< static_cast<int>(existing->type())
+<< std::endl;
                     capturedPositions.push_back(to);
 
                     if (existing->type() == Piece::Type::KING)

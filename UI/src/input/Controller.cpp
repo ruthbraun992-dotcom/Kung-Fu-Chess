@@ -11,6 +11,10 @@ Controller::Controller(GameClient& client)
 
 void Controller::click(const Position& cell)
 {
+    std::cout << "CLICK RECEIVED gameOver=" << gameOver_ << std::endl;
+
+    if (gameOver_)
+        return;
     if (!selected_.has_value())
     {
         selected_ = cell;
@@ -37,6 +41,8 @@ void Controller::click(const Position& cell)
 }
 void Controller::jump(const Position& cell)
 {
+    if (gameOver_)
+        return;
     std::cout
         << "Sending jump from: "
         << cell.row << ","
@@ -68,4 +74,11 @@ void Controller::onMoveResult(bool success)
 std::optional<Position> Controller::getSelected() const
 {
     return selected_;
+}
+void Controller::setGameOver(bool value)
+{
+    gameOver_ = value;
+
+    if (gameOver_)
+        selected_.reset();
 }

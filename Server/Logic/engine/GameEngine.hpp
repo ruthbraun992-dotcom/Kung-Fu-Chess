@@ -39,4 +39,5 @@ private:
     bool gameOver_ = false;
     GameStats stats_;
     EventBus& bus_;
+    bool gameOverSent_ = false;
 };

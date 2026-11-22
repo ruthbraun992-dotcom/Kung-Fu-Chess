@@ -17,6 +17,7 @@ struct GameSession {
     int blackSessionId;
     std::string whiteUsername;   // חדש - נדרש כדי לזהות שחקן חוזר אחרי ניתוק
     std::string blackUsername;
+    bool gameOver = false;
 };
 
 class GameManager {

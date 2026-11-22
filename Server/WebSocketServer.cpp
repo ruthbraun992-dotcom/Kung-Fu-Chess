@@ -206,8 +206,7 @@ if (piece->color() != *playerColor)
 if (ok)
 {
         std::cout << "[SERVER] requestMove OK, calling update()" << std::endl;
-  //std::cout << "[SERVER] update() returned, captures: " << captures.size() << std::endl;
-    auto gameId = games_.getGameIdForSession(sessionId);
+   /* auto gameId = games_.getGameIdForSession(sessionId);
     if (gameId)
     {std::cout << "BROADCAST BOARD STATE FROM: " << __FUNCTION__ << std::endl;
         games_.broadcastBoardState(*gameId,
@@ -215,7 +214,7 @@ if (ok)
             {
                 sendToSession(sid, msg);
             });
-    }
+    }*/
 }
     return json{
         {"type","moveResult"},
@@ -403,12 +402,6 @@ void WebSocketServer::sendToSession(int sessionId, const std::string& payload) {
         ConnectionHdl hdl = sessions_.getHandle(sessionId);
         LOG_SEND(sessionId, payload);           // <-- לוג גם broadcast
         
-        if (payload.find("gameOver") != std::string::npos)
-{
-    std::cout << "[GAMEOVER MESSAGE SENT] "
-              << payload
-              << std::endl;
-}
         server_.send(hdl, payload, websocketpp::frame::opcode::text);
     } catch (const std::exception& e) {
      

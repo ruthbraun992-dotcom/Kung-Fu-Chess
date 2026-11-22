@@ -119,7 +119,10 @@ for (const auto& s : started)  bus_.publish(s);
         std::cout << "[SERVER] CAPTURED: " << (c.capturedPiece.color() == Piece::Color::WHITE ? "WHITE" : "BLACK")
                   << " " << static_cast<int>(c.capturedPiece.type()) << std::endl;
     
-
+std::cout 
+        << "CAPTURE TYPE="
+        << static_cast<int>(c.capturedPiece.type())
+        << std::endl;
         stats_.recordCapture(c);
 
         bus_.publish(PieceCapturedEvent{
@@ -146,9 +149,17 @@ for (const auto& s : started)  bus_.publish(s);
                   << (winner == Piece::Color::WHITE ? "WHITE" : "BLACK")
                   << std::endl;
 
-        bus_.publish(
-            GameOverEvent{winner, "king captured"}
-        );
+       if (!gameOverSent_)
+{
+    gameOverSent_ = true;
+
+    bus_.publish(
+        GameOverEvent{
+            winner,
+            "king captured"
+        }
+    );
+}
     }
 }
 }
@@ -177,7 +188,7 @@ std::optional<long> GameEngine::stateDurationOf(const Position& from) const
 void GameEngine::startMotion(const Motion& motion)
 {
     arbiter_.startMotion(motion);
-    
+
     if (motion.from == motion.to)
     {
         return;

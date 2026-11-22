@@ -63,7 +63,9 @@ void GameClient::onMessage(ConnectionHdl hdl, WsClient::message_ptr msg)
     try
     {
         json msgJson = json::parse(message);
-
+std::cout << "SERVER MESSAGE TYPE = "
+          << msgJson.value("type", "")
+          << std::endl;
         if (msgJson.value("type", "") == "boardState")
         {
             if (onBoardStateUpdate)

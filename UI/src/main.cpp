@@ -57,6 +57,7 @@ std::filesystem::path resolveAssetPath(const std::filesystem::path& relativePath
 
 int main(int argc, char* argv[])
 {
+    
     try
     {
         // ========== SECTION 1: USERNAME FROM COMMAND LINE ==========
@@ -119,7 +120,7 @@ int main(int argc, char* argv[])
         {
             std::lock_guard<std::mutex> lock(gameMutex);
 
-            if (false)//TO DOOOOOO
+            if (controller.isGameOver())
             {
                 canvas = gameOverImage.get_mat().clone();
             }
@@ -280,6 +281,7 @@ gameClient.onMoveLogged = [&](const json& msg) {
             else if (type == "gameOver") {
                 std::string winner = msg.value("winner", "");
                 std::string reason = msg.value("reason", "");
+               controller.setGameOver(true);
                 std::cout << "🏁 GAME OVER! Winner: " << winner << std::endl;
             }
         };

@@ -16,8 +16,12 @@ public:
     void onMoveResult(bool success);
 
     std::optional<Position> getSelected() const;
+    void setGameOver(bool value);
+    bool isGameOver(){return gameOver_;};
 
 private:
     GameClient& client_;
     std::optional<Position> selected_;
+
+    bool gameOver_ = false;
 };
